@@ -52,13 +52,13 @@ namespace SmtpServer
         /// <returns>A task which asynchronously performs the execution.</returns>
         async Task ExecuteAsync(SmtpSessionContext context, CancellationToken cancellationToken)
         {
-            var retries = _context.ServerOptions.MaxRetryCount;
+            int retries = _context.ServerOptions.MaxRetryCount;
 
             while (retries-- > 0 && context.IsQuitRequested == false && cancellationToken.IsCancellationRequested == false)
             {
                 try
                 {
-                    var command = await ReadCommandAsync(context, cancellationToken).ConfigureAwait(false);
+                    SmtpCommand command = await ReadCommandAsync(context, cancellationToken).ConfigureAwait(false);
 
                     if (command == null)
                     {

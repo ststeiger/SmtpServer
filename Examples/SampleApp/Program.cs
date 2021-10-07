@@ -21,6 +21,8 @@ namespace SampleApp
             ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
             SimpleExample.Run();
+
+            System.Console.WriteLine(" --- Press any key to continue --- ");
             System.Console.ReadKey();
             //SimpleServerExample.Run();
             //CustomEndpointListenerExample.Run();
