@@ -62,21 +62,20 @@ namespace SampleApp.Examples
             // SampleMailClient.Send(user: "user", password: "password", useSsl: true);
 
             // cancellationTokenSource.Cancel();
+            // serverTask.WaitWithoutException();
+
+
+            Console.WriteLine("Press any key to shudown the server.");
+            Console.ReadKey();
+
+            Console.WriteLine("Gracefully shutting down the server.");
+            server.Shutdown();
+
+            server.ShutdownTask.WaitWithoutException();
+            Console.WriteLine("The server is no longer accepting new connections.");
+
+            Console.WriteLine("Waiting for active sessions to complete.");
             serverTask.WaitWithoutException();
-
-
-            // Console.WriteLine("Press any key to shudown the server.");
-            // Console.ReadKey();
-
-            // Console.WriteLine("Gracefully shutting down the server.");
-            // server.Shutdown();
-
-            //server.ShutdownTask.WaitWithoutException();
-            //Console.WriteLine("The server is no longer accepting new connections.");
-
-            //Console.WriteLine("Waiting for active sessions to complete.");
-            //serverTask.WaitWithoutException();
-
         }
 
 
