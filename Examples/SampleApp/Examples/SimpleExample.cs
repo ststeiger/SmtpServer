@@ -1,31 +1,35 @@
-﻿using System;
-using System.Threading;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-
+﻿
 namespace SampleApp.Examples
 {
-    public static class CommonPortsExample
+
+
+    public static class SimpleExample 
     {
+
+
         public static void Run()
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            System.Threading.CancellationTokenSource cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
-            var options = new SmtpServerOptionsBuilder()
+            SmtpServer.ISmtpServerOptions options = new SmtpServer.SmtpServerOptionsBuilder()
                 .ServerName("SmtpServer SampleApp")
                 .Port(25)
                 .Build();
 
-            var serviceProvider = new ServiceProvider();
-            serviceProvider.Add(new SampleMessageStore(Console.Out));
-            
-            var server = new SmtpServer.SmtpServer(options, serviceProvider);
-            var serverTask = server.StartAsync(cancellationTokenSource.Token);
+            SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
+            serviceProvider.Add(new SampleMessageStore(System.Console.Out));
+
+            SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, serviceProvider);
+            System.Threading.Tasks.Task serverTask = server.StartAsync(cancellationTokenSource.Token);
 
             SampleMailClient.Send(); 
 
             cancellationTokenSource.Cancel();
             serverTask.WaitWithoutException();
         }
+
+
     }
+
+
 }

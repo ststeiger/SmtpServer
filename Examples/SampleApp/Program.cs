@@ -1,46 +1,42 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using MimeKit;
-using SampleApp.Examples;
-using SmtpServer.IO;
-using SmtpServer.Protocol;
-using SmtpServer.Tests;
-using SmtpServer.Text;
-
+﻿
 namespace SampleApp
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
-            SimpleExample.Run();
+
+    internal class Program
+    {
+
+
+        internal static void Main(string[] args)
+        {
+            CertificateCallback.Initialize();
+
+            Examples.CommonPortsExample.Run();
+            
 
             System.Console.WriteLine(" --- Press any key to continue --- ");
             System.Console.ReadKey();
-            //SimpleServerExample.Run();
-            //CustomEndpointListenerExample.Run();
-            //ServerCancellingExample.Run();
-            //SessionTracingExample.Run();
-            //DependencyInjectionExample.Run();
-            // SecureServerExample.Run();
 
-            //SampleMailClient.Send(user: "user1", password: "password1", useSsl: false, port: 587);
-            //SampleMailClient.Send(useSsl: false, port: 587);
+            // SampleApp.Examples.SimpleExample.Run();
+            Examples.SimpleServerExample.Run();
+            Examples.CustomEndpointListenerExample.Run();
+            Examples.ServerCancellingExample.Run();
+            Examples.SessionTracingExample.Run();
+            Examples.DependencyInjectionExample.Run();
+            Examples.SecureServerExample.Run();
 
-            //var files = Directory.GetFiles(@"C:\Temp\enron_mail_20150507.tar", "*.*", SearchOption.AllDirectories).ToList();
-            //Console.WriteLine(files.OrderByDescending(file => new FileInfo(file).Length).First());
+            // SampleMailClient.Send(user: "user1", password: "password1", useSsl: false, port: 587);
+            // SampleMailClient.Send(useSsl: false, port: 587);
+
+            // http://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz
+            // string[] files = System.IO.Directory.GetFiles(@"C:\Temp\enron_mail_20150507.tar", "*.*", System.IO.SearchOption.AllDirectories);
+            // // System.Console.WriteLine(files.OrderByDescending(file => new System.IO.FileInfo(file).Length).First());
+            // System.Array.Sort(files, delegate (string a, string b) { return new System.IO.FileInfo(b).Length.CompareTo(new System.IO.FileInfo(a).Length); });
+            // System.Array.Sort(files, (a, b) => new System.IO.FileInfo(b).Length.CompareTo(new System.IO.FileInfo(a).Length));
         }
 
-        static bool IgnoreCertificateValidationFailureForTestingOnly(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            return true;
-        }
+
     }
+
+
 }
