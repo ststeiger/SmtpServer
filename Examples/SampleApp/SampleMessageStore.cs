@@ -1,18 +1,14 @@
-﻿using System.Buffers;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using SmtpServer;
-using SmtpServer.Protocol;
-using SmtpServer.Storage;
-
+﻿
 namespace SampleApp
 {
-    public class SampleMessageStore : MessageStore
-    {
-        readonly TextWriter _writer;
 
-        public SampleMessageStore(TextWriter writer)
+
+    public class SampleMessageStore 
+        : SmtpServer.Storage.MessageStore
+    {
+        readonly System.IO.TextWriter _writer;
+
+        public SampleMessageStore(System.IO.TextWriter writer)
         {
             _writer = writer;
         }
@@ -25,24 +21,32 @@ namespace SampleApp
         /// <param name="buffer">The buffer that contains the message content.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A unique identifier that represents this message in the underlying message store.</returns>
-        public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
+        public override async System.Threading.Tasks.Task<SmtpServer.Protocol.SmtpResponse> SaveAsync(
+            SmtpServer.ISessionContext context,
+            SmtpServer.IMessageTransaction transaction,
+            System.Buffers.ReadOnlySequence<byte> buffer,
+            System.Threading.CancellationToken cancellationToken)
         {
-            await using var stream = new MemoryStream();
+            await using System.IO.MemoryStream stream = new System.IO.MemoryStream();
 
-            var position = buffer.GetPosition(0);
-            while (buffer.TryGet(ref position, out var memory))
+            System.SequencePosition position = buffer.GetPosition(0);
+            while (buffer.TryGet(ref position, out System.ReadOnlyMemory<byte> memory))
             {
                 stream.Write(memory.Span);
             }
 
             stream.Position = 0;
 
-            var message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
+            MimeKit.MimeMessage message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
 
             _writer.WriteLine("Subject={0}", message.Subject);
             _writer.WriteLine("Body={0}", message.Body);
 
-            return SmtpResponse.Ok;
+            return SmtpServer.Protocol.SmtpResponse.Ok;
         }
+
+
     }
+
+
 }

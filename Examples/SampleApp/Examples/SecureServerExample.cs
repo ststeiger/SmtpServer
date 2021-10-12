@@ -1,26 +1,20 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Net.Security;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-using SmtpServer.Tracing;
-
+﻿
 namespace SampleApp.Examples
 {
+
+
     public static class SecureServerExample
     {
+
+
         public static void Run()
         {
             // this is important when dealing with a certificate that isnt valid
-            ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
-            var cancellationTokenSource = new CancellationTokenSource();
+            System.Threading.CancellationTokenSource cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
-            var options = new SmtpServerOptionsBuilder()
+            SmtpServer.ISmtpServerOptions options = new SmtpServer.SmtpServerOptionsBuilder()
                 .ServerName("SmtpServer SampleApp")
                 .Endpoint(builder =>
                     builder
@@ -29,13 +23,13 @@ namespace SampleApp.Examples
                         .Certificate(CreateCertificate()))
                 .Build();
 
-            var serviceProvider = new ServiceProvider();
+            SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
             serviceProvider.Add(new SampleUserAuthenticator());
 
-            var server = new SmtpServer.SmtpServer(options, serviceProvider);
+            SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, serviceProvider);
             server.SessionCreated += OnSessionCreated;
-            
-            var serverTask = server.StartAsync(cancellationTokenSource.Token);
+
+            System.Threading.Tasks.Task serverTask = server.StartAsync(cancellationTokenSource.Token);
 
             SampleMailClient.Send(user: "user", password: "password", useSsl: true);
 
@@ -43,34 +37,46 @@ namespace SampleApp.Examples
             serverTask.WaitWithoutException();
         }
 
-        static void OnSessionCreated(object sender, SessionEventArgs e)
+
+        static void OnSessionCreated(object sender, SmtpServer.SessionEventArgs e)
         {
-            Console.WriteLine("Session Created.");
+            System.Console.WriteLine("Session Created.");
 
             e.Context.CommandExecuting += OnCommandExecuting;
         }
 
-        static void OnCommandExecuting(object sender, SmtpCommandEventArgs e)
-        {
-            Console.WriteLine("Command Executing.");
 
-            new TracingSmtpCommandVisitor(Console.Out).Visit(e.Command);
+        static void OnCommandExecuting(object sender, SmtpServer.SmtpCommandEventArgs e)
+        {
+            System.Console.WriteLine("Command Executing.");
+
+            new SmtpServer.Tracing.TracingSmtpCommandVisitor(System.Console.Out).Visit(e.Command);
         }
 
-        static bool IgnoreCertificateValidationFailureForTestingOnly(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+
+        static bool IgnoreCertificateValidationFailureForTestingOnly(
+            object sender,
+            System.Security.Cryptography.X509Certificates.X509Certificate certificate,
+            System.Security.Cryptography.X509Certificates.X509Chain chain, 
+            System.Net.Security.SslPolicyErrors sslPolicyErrors)
         {
             return true;
         }
 
-        static X509Certificate2 CreateCertificate()
+
+        static System.Security.Cryptography.X509Certificates.X509Certificate2 CreateCertificate()
         {
             // to create an X509Certificate for testing you need to run MAKECERT.EXE and then PVK2PFX.EXE
             // http://www.digitallycreated.net/Blog/38/using-makecert-to-create-certificates-for-development
 
-            var certificate = File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
-            var password = File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
+            byte[] certificate = System.IO.File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
+            string password = System.IO.File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
 
-            return new X509Certificate2(certificate, password);
+            return new System.Security.Cryptography.X509Certificates.X509Certificate2(certificate, password);
         }
+
+
     }
+
+
 }

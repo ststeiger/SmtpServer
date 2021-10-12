@@ -1,20 +1,26 @@
-using System;
-using System.Threading.Tasks;
 
 namespace SampleApp
 {
+
+
     public static class TaskExtensions
     {
-        public static void WaitWithoutException(this Task task)
+
+
+        public static void WaitWithoutException(this System.Threading.Tasks.Task task)
         {
             try
             {
                 task.Wait();
             }
-            catch (AggregateException e)
+            catch (System.AggregateException e)
             {
-                e.Handle(exception => exception is OperationCanceledException);
+                e.Handle(exception => exception is System.OperationCanceledException);
             }
         }
+
+
     }
+
+
 }

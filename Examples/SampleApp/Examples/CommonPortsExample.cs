@@ -39,11 +39,15 @@ namespace SampleApp.Examples
                         .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
                 .Build();
 
-
             SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
+            // serviceProvider.Add(SmtpServer.Authentication.UserAuthenticator.Default);
+            // serviceProvider.Add(SmtpServer.Storage.MailboxFilter.Default);
+            // serviceProvider.Add(SmtpServer.Storage.MessageStore.Default);
             serviceProvider.Add(new SampleUserAuthenticator());
             serviceProvider.Add(new SampleMailboxFilter(System.TimeSpan.FromSeconds(5)));
             serviceProvider.Add(new SampleMessageStore(System.Console.Out));
+
+
 
             SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, serviceProvider);
             
@@ -84,17 +88,28 @@ namespace SampleApp.Examples
         }
 
 
+        static void OnCommandExecuted(object sender, SmtpServer.SmtpCommandEventArgs e)
+        {
+            System.Console.WriteLine("Command Executed");
+            new SmtpServer.Tracing.TracingSmtpCommandVisitor(System.Console.Out).Visit(e.Command);
+        }
+
+
         static void OnSessionCreated(object sender, SmtpServer.SessionEventArgs e)
         {
             System.Console.WriteLine("Session Created.");
 
             e.Context.CommandExecuting += OnCommandExecuting;
+            e.Context.CommandExecuted += OnCommandExecuted;
         }
 
 
         static void OnSessionCompleted(object sender, SmtpServer.SessionEventArgs e)
         {
             System.Console.WriteLine("Session Completed");
+
+            e.Context.CommandExecuting -= OnCommandExecuting;
+            e.Context.CommandExecuted -= OnCommandExecuted;
         }
 
 

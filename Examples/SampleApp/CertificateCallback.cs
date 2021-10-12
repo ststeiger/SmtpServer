@@ -10,7 +10,7 @@ namespace SampleApp
         public static void Initialize()
         {
             System.Net.ServicePointManager.ServerCertificateValidationCallback = CertificateValidationCallBack;
-        }
+        } // End Sub Initialize 
 
 
         private static bool CertificateValidationCallBack(
@@ -55,15 +55,13 @@ namespace SampleApp
                 // for default Exchange server installations, so return true.
                 return true;
             }
-            else
-            {
-                // In all other cases, return false.
-                return false;
-            }
-        }
+
+            // In all other cases, return false.
+            return false;
+        } // End Function CertificateValidationCallBack
 
 
-    }
+    } // End Class CertificateCallback 
 
 
-}
+} // End Namespace 

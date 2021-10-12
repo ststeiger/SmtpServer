@@ -1,23 +1,24 @@
-﻿using System;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using SmtpServer;
-using SmtpServer.Mail;
-using SmtpServer.Net;
-using SmtpServer.Storage;
-
+﻿
 namespace SampleApp
 {
-    public class SampleMailboxFilter : MailboxFilter
-    {
-        readonly TimeSpan _delay;
-        public SampleMailboxFilter() : this(TimeSpan.Zero) { }
 
-        public SampleMailboxFilter(TimeSpan delay)
+
+    public class SampleMailboxFilter 
+        : SmtpServer.Storage.MailboxFilter
+    {
+        readonly System.TimeSpan _delay;
+
+
+        public SampleMailboxFilter(System.TimeSpan delay)
         {
             _delay = delay;
         }
+
+
+        public SampleMailboxFilter()
+            : this(System.TimeSpan.Zero) 
+        { }
+
 
         /// <summary>
         /// Returns a value indicating whether the given mailbox can be accepted as a sender.
@@ -27,27 +28,28 @@ namespace SampleApp
         /// <param name="size">The estimated message size to accept.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The acceptance state of the mailbox.</returns>
-        public override async Task<MailboxFilterResult> CanAcceptFromAsync(
-            ISessionContext context, 
-            IMailbox @from, 
+        public override async System.Threading.Tasks.Task<SmtpServer.Storage.MailboxFilterResult> 
+            CanAcceptFromAsync(
+            SmtpServer.ISessionContext context,
+            SmtpServer.Mail.IMailbox @from, 
             int size,
-            CancellationToken cancellationToken)
+            System.Threading.CancellationToken cancellationToken)
         {
-            await Task.Delay(_delay, cancellationToken);
+            await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
         
-            if (@from == Mailbox.Empty)
+            if (@from == SmtpServer.Mail.Mailbox.Empty)
             {
-                return MailboxFilterResult.NoPermanently;
+                return SmtpServer.Storage.MailboxFilterResult.NoPermanently;
             }
 
-            var endpoint = (IPEndPoint)context.Properties[EndpointListener.RemoteEndPointKey];
+            System.Net.IPEndPoint endpoint = (System.Net.IPEndPoint)context.Properties[SmtpServer.Net.EndpointListener.RemoteEndPointKey];
             
-            if (endpoint.Address.Equals(IPAddress.Parse("127.0.0.1")))
+            if (endpoint.Address.Equals(System.Net.IPAddress.Parse("127.0.0.1")))
             {
-                return MailboxFilterResult.Yes;
+                return SmtpServer.Storage.MailboxFilterResult.Yes;
             }
 
-            return MailboxFilterResult.NoPermanently;
+            return SmtpServer.Storage.MailboxFilterResult.NoPermanently;
         }
 
         /// <summary>
@@ -58,15 +60,20 @@ namespace SampleApp
         /// <param name="from">The sender's mailbox.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The acceptance state of the mailbox.</returns>
-        public override async Task<MailboxFilterResult> CanDeliverToAsync(
-            ISessionContext context, 
-            IMailbox to, 
-            IMailbox @from,
-            CancellationToken cancellationToken)
+        public override async System.Threading.Tasks.Task<SmtpServer.Storage.MailboxFilterResult> 
+            CanDeliverToAsync(
+            SmtpServer.ISessionContext context,
+            SmtpServer.Mail.IMailbox to,
+            SmtpServer.Mail.IMailbox @from,
+            System.Threading.CancellationToken cancellationToken)
         {
-            await Task.Delay(_delay, cancellationToken);
+            await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
 
-            return MailboxFilterResult.Yes;
+            return SmtpServer.Storage.MailboxFilterResult.Yes;
         }
+
+
     }
+
+
 }

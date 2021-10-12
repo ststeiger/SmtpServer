@@ -1,47 +1,50 @@
-﻿using System;
-using System.Threading;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-using SmtpServer.Tracing;
-
+﻿
 namespace SampleApp.Examples
 {
+
+
     public static class SimpleServerExample
     {
+
+
         public static void Run()
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            System.Threading.CancellationTokenSource cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
-            var options = new SmtpServerOptionsBuilder()
+            SmtpServer.ISmtpServerOptions options = new SmtpServer.SmtpServerOptionsBuilder()
                 .ServerName("SmtpServer SampleApp")
                 .Port(9025)
-                .CommandWaitTimeout(TimeSpan.FromSeconds(100))
+                .CommandWaitTimeout(System.TimeSpan.FromSeconds(100))
                 .Build();
 
-            var server = new SmtpServer.SmtpServer(options, ServiceProvider.Default);
+            SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, SmtpServer.ComponentModel.ServiceProvider.Default);
             server.SessionCreated += OnSessionCreated;
 
-            var serverTask = server.StartAsync(cancellationTokenSource.Token);
+            System.Threading.Tasks.Task serverTask = server.StartAsync(cancellationTokenSource.Token);
 
-            Console.WriteLine("Press any key to shutdown the server.");
-            Console.ReadKey();
+            System.Console.WriteLine("Press any key to shutdown the server.");
+            System.Console.ReadKey();
 
             cancellationTokenSource.Cancel();
             serverTask.WaitWithoutException();
         }
 
-        static void OnSessionCreated(object sender, SessionEventArgs e)
+        static void OnSessionCreated(object sender, SmtpServer.SessionEventArgs e)
         {
-            Console.WriteLine("Session Created.");
+            System.Console.WriteLine("Session Created.");
 
             e.Context.CommandExecuting += OnCommandExecuting;
         }
 
-        static void OnCommandExecuting(object sender, SmtpCommandEventArgs e)
+        static void OnCommandExecuting(object sender, SmtpServer.SmtpCommandEventArgs e)
         {
-            Console.WriteLine("Command Executing.");
+            System.Console.WriteLine("Command Executing.");
 
-            new TracingSmtpCommandVisitor(Console.Out).Visit(e.Command);
+            new SmtpServer.Tracing.TracingSmtpCommandVisitor(System.Console.Out).Visit(e.Command);
         }
+
+
     }
+
+
 }

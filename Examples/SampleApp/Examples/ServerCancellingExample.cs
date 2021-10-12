@@ -1,65 +1,68 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-
+﻿
 namespace SampleApp.Examples
 {
+
+
     public static class ServerCancellingExample
     {
+
+
         public static void Run()
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            System.Threading.CancellationTokenSource cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
-            var options = new SmtpServerOptionsBuilder()
+            SmtpServer.ISmtpServerOptions options = new SmtpServer.SmtpServerOptionsBuilder()
                 .ServerName("SmtpServer SampleApp")
                 .Port(9025)
                 .Build();
 
-            var serviceProvider = new ServiceProvider();
-            serviceProvider.Add(new SampleMailboxFilter(TimeSpan.FromSeconds(5)));
+            SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
+            serviceProvider.Add(new SampleMailboxFilter(System.TimeSpan.FromSeconds(5)));
 
-            var server = new SmtpServer.SmtpServer(options, serviceProvider);
+            SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, serviceProvider);
             server.SessionCreated += OnSessionCreated;
             server.SessionCompleted += OnSessionCompleted;
             server.SessionFaulted += OnSessionFaulted;
             server.SessionCancelled += OnSessionCancelled;
 
-            var serverTask = server.StartAsync(cancellationTokenSource.Token);
+            System.Threading.Tasks.Task serverTask = server.StartAsync(cancellationTokenSource.Token);
 
             // ReSharper disable once MethodSupportsCancellation
-            Task.Run(() => SampleMailClient.Send());
+            System.Threading.Tasks.Task.Run(() => SampleMailClient.Send());
 
-            Console.WriteLine("Press any key to cancel the server.");
-            Console.ReadKey();
+            System.Console.WriteLine("Press any key to cancel the server.");
+            System.Console.ReadKey();
 
-            Console.WriteLine("Forcibily cancelling the server and any active sessions");
+            System.Console.WriteLine("Forcibily cancelling the server and any active sessions");
 
             cancellationTokenSource.Cancel();
             serverTask.WaitWithoutException();
 
-            Console.WriteLine("The server has been cancelled.");
+            System.Console.WriteLine("The server has been cancelled.");
         }
 
-        static void OnSessionCreated(object sender, SessionEventArgs e)
+        static void OnSessionCreated(object sender, SmtpServer.SessionEventArgs e)
         {
-            Console.WriteLine("Session Created.");
+            System.Console.WriteLine("Session Created.");
         }
 
-        static void OnSessionCompleted(object sender, SessionEventArgs e)
+        static void OnSessionCompleted(object sender, SmtpServer.SessionEventArgs e)
         {
-            Console.WriteLine("Session Completed");
+            System.Console.WriteLine("Session Completed");
         }
 
-        static void OnSessionFaulted(object sender, SessionFaultedEventArgs e)
+        static void OnSessionFaulted(object sender, SmtpServer.SessionFaultedEventArgs e)
         {
-            Console.WriteLine("Session Faulted: {0}", e.Exception);
+            System.Console.WriteLine("Session Faulted: {0}", e.Exception);
         }
 
-        static void OnSessionCancelled(object sender, SessionEventArgs e)
+        static void OnSessionCancelled(object sender, SmtpServer.SessionEventArgs e)
         {
-            Console.WriteLine("Session Cancelled");
+            System.Console.WriteLine("Session Cancelled");
         }
+
+
     }
+
+
 }

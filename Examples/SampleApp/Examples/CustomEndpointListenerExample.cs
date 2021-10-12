@@ -1,25 +1,17 @@
-﻿using System;
-using System.IO;
-using System.IO.Pipelines;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
-using SmtpServer;
-using SmtpServer.ComponentModel;
-using SmtpServer.IO;
-using SmtpServer.Net;
-using SmtpServer.Text;
-
+﻿
 namespace SampleApp.Examples
 {
+
+
     public static class CustomEndpointListenerExample
     {
+
+
         public static void Run()
         {
-            var cancellationTokenSource = new CancellationTokenSource();
+            System.Threading.CancellationTokenSource cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
-            var options = new SmtpServerOptionsBuilder()
+            SmtpServer.ISmtpServerOptions options = new SmtpServer.SmtpServerOptionsBuilder()
                 .ServerName("SmtpServer SampleApp")
                 .Endpoint(builder =>
                     builder
@@ -28,12 +20,12 @@ namespace SampleApp.Examples
                         .Certificate(CreateCertificate()))
                 .Build();
 
-            var serviceProvider = new ServiceProvider();
+            SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
             serviceProvider.Add(new CustomEndpointListenerFactory());
 
-            var server = new SmtpServer.SmtpServer(options, serviceProvider);
+            SmtpServer.SmtpServer server = new SmtpServer.SmtpServer(options, serviceProvider);
 
-            var serverTask = server.StartAsync(cancellationTokenSource.Token);
+            System.Threading.Tasks.Task serverTask = server.StartAsync(cancellationTokenSource.Token);
 
             SampleMailClient.Send(useSsl: true);
 
@@ -41,19 +33,23 @@ namespace SampleApp.Examples
             serverTask.WaitWithoutException();
         }
 
-        public sealed class CustomEndpointListenerFactory : EndpointListenerFactory
+
+        public sealed class CustomEndpointListenerFactory 
+            : SmtpServer.Net.EndpointListenerFactory
         {
-            public override IEndpointListener CreateListener(IEndpointDefinition endpointDefinition)
+            public override SmtpServer.Net.IEndpointListener CreateListener(SmtpServer.IEndpointDefinition endpointDefinition)
             {
                 return new CustomEndpointListener(base.CreateListener(endpointDefinition));
             }
         }
 
-        public sealed class CustomEndpointListener : IEndpointListener
-        {
-            readonly IEndpointListener _endpointListener;
 
-            public CustomEndpointListener(IEndpointListener endpointListener)
+        public sealed class CustomEndpointListener 
+            : SmtpServer.Net.IEndpointListener
+        {
+            readonly SmtpServer.Net.IEndpointListener _endpointListener;
+
+            public CustomEndpointListener(SmtpServer.Net.IEndpointListener endpointListener)
             {
                 _endpointListener = endpointListener;
             }
@@ -63,24 +59,31 @@ namespace SampleApp.Examples
                 _endpointListener.Dispose();
             }
 
-            public async Task<ISecurableDuplexPipe> GetPipeAsync(ISessionContext context, CancellationToken cancellationToken)
+            public async System.Threading.Tasks.Task<SmtpServer.IO.ISecurableDuplexPipe> GetPipeAsync(
+                SmtpServer.ISessionContext context,
+                System.Threading.CancellationToken cancellationToken)
             {
-                var pipe = await _endpointListener.GetPipeAsync(context, cancellationToken);
+                SmtpServer.IO.ISecurableDuplexPipe pipe = await _endpointListener.GetPipeAsync(context, cancellationToken);
 
                 return new CustomSecurableDuplexPipe(pipe);
             }
         }
 
-        public sealed class CustomSecurableDuplexPipe : ISecurableDuplexPipe
-        {
-            readonly ISecurableDuplexPipe _securableDuplexPipe;
 
-            public CustomSecurableDuplexPipe(ISecurableDuplexPipe securableDuplexPipe)
+        public sealed class CustomSecurableDuplexPipe 
+            : SmtpServer.IO.ISecurableDuplexPipe
+        {
+            readonly SmtpServer.IO.ISecurableDuplexPipe _securableDuplexPipe;
+
+            public CustomSecurableDuplexPipe(SmtpServer.IO.ISecurableDuplexPipe securableDuplexPipe)
             {
                 _securableDuplexPipe = securableDuplexPipe;
             }
 
-            public Task UpgradeAsync(X509Certificate certificate, SslProtocols protocols, CancellationToken cancellationToken = default)
+            public System.Threading.Tasks.Task UpgradeAsync(
+                System.Security.Cryptography.X509Certificates.X509Certificate certificate,
+                System.Security.Authentication.SslProtocols protocols,
+                System.Threading.CancellationToken cancellationToken = default)
             {
                 return _securableDuplexPipe.UpgradeAsync(certificate, protocols, cancellationToken);
             }
@@ -90,28 +93,30 @@ namespace SampleApp.Examples
                 _securableDuplexPipe.Dispose();
             }
 
-            public PipeReader Input => new LoggingPipeReader(_securableDuplexPipe.Input);
+            public System.IO.Pipelines.PipeReader Input => new LoggingPipeReader(_securableDuplexPipe.Input);
 
-            public PipeWriter Output => _securableDuplexPipe.Output;
+            public System.IO.Pipelines.PipeWriter Output => _securableDuplexPipe.Output;
 
             public bool IsSecure => _securableDuplexPipe.IsSecure;
         }
 
-        public sealed class LoggingPipeReader : PipeReader
-        {
-            readonly PipeReader _delegate;
 
-            public LoggingPipeReader(PipeReader @delegate)
+        public sealed class LoggingPipeReader 
+            : System.IO.Pipelines.PipeReader
+        {
+            readonly System.IO.Pipelines.PipeReader _delegate;
+
+            public LoggingPipeReader(System.IO.Pipelines.PipeReader @delegate)
             {
                 _delegate = @delegate;
             }
 
-            public override void AdvanceTo(SequencePosition consumed)
+            public override void AdvanceTo(System.SequencePosition consumed)
             {
                 _delegate.AdvanceTo(consumed);
             }
 
-            public override void AdvanceTo(SequencePosition consumed, SequencePosition examined)
+            public override void AdvanceTo(System.SequencePosition consumed, System.SequencePosition examined)
             {
                 _delegate.AdvanceTo(consumed, examined);
             }
@@ -121,35 +126,42 @@ namespace SampleApp.Examples
                 _delegate.CancelPendingRead();
             }
 
-            public override void Complete(Exception exception = null)
+            public override void Complete(System.Exception exception = null)
             {
                 _delegate.Complete(exception);
             }
 
-            public override async ValueTask<ReadResult> ReadAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public override async System.Threading.Tasks.ValueTask<System.IO.Pipelines.ReadResult> 
+                ReadAsync(
+                System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
             {
-                var readResult = await _delegate.ReadAsync(cancellationToken);
+                System.IO.Pipelines.ReadResult readResult = await _delegate.ReadAsync(cancellationToken);
 
-                Console.WriteLine(">>> {0}", StringUtil.Create(readResult.Buffer));
+                System.Console.WriteLine(">>> {0}", SmtpServer.Text.StringUtil.Create(readResult.Buffer));
 
                 return readResult;
             }
 
-            public override bool TryRead(out ReadResult result)
+            public override bool TryRead(out System.IO.Pipelines.ReadResult result)
             {
                 return _delegate.TryRead(out result);
             }
         }
 
-        static X509Certificate2 CreateCertificate()
+
+        static System.Security.Cryptography.X509Certificates.X509Certificate2 CreateCertificate()
         {
             // to create an X509Certificate for testing you need to run MAKECERT.EXE and then PVK2PFX.EXE
             // http://www.digitallycreated.net/Blog/38/using-makecert-to-create-certificates-for-development
 
-            var certificate = File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
-            var password = File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
+            byte[] certificate = System.IO.File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
+            string password = System.IO.File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
 
-            return new X509Certificate2(certificate, password);
+            return new System.Security.Cryptography.X509Certificates.X509Certificate2(certificate, password);
         }
+
+
     }
+
+
 }

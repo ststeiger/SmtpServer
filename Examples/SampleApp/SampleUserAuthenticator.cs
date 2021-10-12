@@ -1,11 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using SmtpServer;
-using SmtpServer.Authentication;
-
+﻿
 namespace SampleApp
 {
-    public sealed class SampleUserAuthenticator : UserAuthenticator
+
+
+    public sealed class SampleUserAuthenticator 
+        : SmtpServer.Authentication.UserAuthenticator
     {
         /// <summary>
         /// Authenticate a user account.
@@ -15,13 +14,17 @@ namespace SampleApp
         /// <param name="password">The password of the user.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>true if the user is authenticated, false if not.</returns>
-        public override Task<bool> AuthenticateAsync(
-            ISessionContext context, 
+        public override System.Threading.Tasks.Task<bool> AuthenticateAsync(
+            SmtpServer.ISessionContext context, 
             string user, 
-            string password, 
-            CancellationToken cancellationToken)
+            string password,
+            System.Threading.CancellationToken cancellationToken)
         {
-            return Task.FromResult(user == "user" && password == "password");
+            return System.Threading.Tasks.Task.FromResult(user == "user" && password == "password");
         }
+
+
     }
+
+
 }
