@@ -15,12 +15,16 @@
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="2.8.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Src\SmtpServer.Tests\SmtpServer.Tests.csproj" />
     <ProjectReference Include="..\..\Src\SmtpServer\SmtpServer.csproj" />
+    <ProjectReference Include="..\Dapper\Dapper.csproj" />
   </ItemGroup>
 
 </Project>

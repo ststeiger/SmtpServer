@@ -1,7 +1,10 @@
 ﻿
+using Dapper;
+
 namespace SampleApp
 {
 
+  
 
     public class SampleMessageStore 
         : SmtpServer.Storage.MessageStore
@@ -27,87 +30,118 @@ namespace SampleApp
             System.Buffers.ReadOnlySequence<byte> buffer,
             System.Threading.CancellationToken cancellationToken)
         {
-            MimeKit.MimeMessage message = null;
-            byte[] msg = null;
-            string unmapped = null;
-            string ipV4 = null;
-            string ipV6 = null;
-            string addressFamily = null;
-            int? port = null;
-
+            DB.InsertMessageParameters m = new DB.InsertMessageParameters()
+            {
+                __msg_uid = System.Guid.NewGuid(), 
+                __msg_from_host = transaction.From.Host, 
+                __msg_from_mailbox = transaction.From.User, 
+                __msg_host = transaction.To[0].Host, 
+                __msg_mailbox = transaction.To[0].User, 
+            };
+            
 
             if (context.Properties.ContainsKey("EndpointListener:RemoteEndPoint"))
             {
-                object obj = context.Properties["EndpointListener:RemoteEndPoint"];
-                System.Net.IPEndPoint endp = (System.Net.IPEndPoint)obj;
-                port = endp.Port;
-                addressFamily = endp.AddressFamily.ToString();
-                unmapped = endp.Address.ToString();
-                
+                System.Net.IPEndPoint endp = null;
+
                 try
                 {
-                    ipV4 = endp.Address.MapToIPv4().ToString();
+                    object obj = obj = context.Properties["EndpointListener:RemoteEndPoint"];
+                    endp = (System.Net.IPEndPoint)obj;
+                    m.__msg_port = endp.Port;
+                    m.__msg_addressFamily = endp.AddressFamily.ToString();
+                    m.__msg_unmapped = endp.Address.ToString();
+                }
+                catch (System.Exception exUnmapped)
+                {
+                    m.__msg_unmapped = exUnmapped.Message + "\r\n" + exUnmapped.StackTrace + "\r\n" + exUnmapped.Source;
+                }
+
+                try
+                {
+                    // if (endp.Address.IsIPv4MappedToIPv6)
+                    m.__msg_ip_v4 = endp.Address.MapToIPv4().ToString();
                 }
                 catch (System.Exception exV4)
                 {
-                    ipV6 = exV4.Message + "\r\n" + exV4.StackTrace + "\r\n" + exV4.Source;
+                    m.__msg_ip_v4 = exV4.Message + "\r\n" + exV4.StackTrace + "\r\n" + exV4.Source;
                 }
 
                 try
                 {
-                    ipV6 = endp.Address.MapToIPv6().ToString();
+                    m.__msg_ip_v6 = endp.Address.MapToIPv6().ToString();
                 }
                 catch (System.Exception exV6)
                 {
-                    ipV6 = exV6.Message + "\r\n" + exV6.StackTrace + "\r\n" + exV6.Source;
+                    m.__msg_ip_v6 = exV6.Message + "\r\n" + exV6.StackTrace + "\r\n" + exV6.Source;
                 }
 
-                if(port.HasValue)
-                    System.Console.WriteLine(port.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                System.Console.WriteLine(addressFamily);
-                System.Console.WriteLine(unmapped);
-                System.Console.WriteLine(ipV4);
-                System.Console.WriteLine(ipV6);
             }
-
-            System.Console.WriteLine(transaction.From.Host);
-            System.Console.WriteLine(transaction.From.User);
-
-            System.Console.WriteLine(transaction.To[0].User);
-            System.Console.WriteLine(transaction.To[0].Host);
-
 
             using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
             {
-                System.SequencePosition position = buffer.GetPosition(0);
-                while (buffer.TryGet(ref position, out System.ReadOnlyMemory<byte> memory))
+
+                try
                 {
-                    // stream.Write(memory.Span);
-                    await stream.WriteAsync(memory, cancellationToken);
+                    System.SequencePosition position = buffer.GetPosition(0);
+                    while (buffer.TryGet(ref position, out System.ReadOnlyMemory<byte> memory))
+                    {
+                        // stream.Write(memory.Span);
+                        await stream.WriteAsync(memory, cancellationToken);
+                    }
+
+                    stream.Position = 0;
+
+                    m.__msg_bytes = stream.ToArray();
+                    // string str = System.Text.Encoding.UTF8.GetString(m.__msg_bytes = );
+                    // System.Console.WriteLine(str);
+
+                    MimeKit.MimeMessage message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
+                    m.__msg_id = message.MessageId;
+                    m.__msg_subject = message.Subject;
+                    m.__msg_body = message.Body.ToString();
+
+
+                    string fileName = message.MessageId + ".eml";
+                    string messagePath = System.IO.Path.Combine(@"E:\", fileName);
+                    message.WriteTo(messagePath);
+                }
+                catch (System.Exception exMessage)
+                {
+                    m.__msg_id = "";
+                    m.__msg_subject = exMessage.Message;
+                    m.__msg_body = exMessage.Message + "\r\n" + exMessage.StackTrace + "\r\n" + exMessage.Source;
                 }
 
-                stream.Position = 0;
-
-
-                msg = stream.ToArray();
-                // string str = System.Text.Encoding.UTF8.GetString(msg);
-                // System.Console.WriteLine(str);
-
-
-                message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
-                string fileName = message.MessageId + ".eml";
-
-                string messagePath = System.IO.Path.Combine(@"E:\", fileName);
-                message.WriteTo(messagePath);
             }
 
-            if (message != null)
-            {
-                this.m_writer.WriteLine("Subject={0}", message.Subject);
-                this.m_writer.WriteLine("Body={0}", message.Body);
-            }
+
+            this.m_writer.WriteLine("Id={0}", m.__msg_id);
+            this.m_writer.WriteLine("Subject={0}", m.__msg_subject);
+            this.m_writer.WriteLine("Body={0}", m.__msg_body);
             
+
+            
+
+            try
+            {
+                SqlFactory fac = new SqlFactory();
+
+                using (System.Data.Common.DbConnection cnn = fac.Connection)
+                {
+                    cnn.Execute(DB.Commands.Insert_Message, m);
+
+                    if (cnn.State != System.Data.ConnectionState.Closed)
+                        cnn.Close();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                System.Console.WriteLine(ex.StackTrace);
+            }
+
+
             return SmtpServer.Protocol.SmtpResponse.Ok;
         }
 
