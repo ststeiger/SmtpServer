@@ -18,12 +18,12 @@ namespace SampleApp
             System.Console.ReadKey();
 
             // SampleApp.Examples.SimpleExample.Run();
-            Examples.SimpleServerExample.Run();
-            Examples.CustomEndpointListenerExample.Run();
-            Examples.ServerCancellingExample.Run();
-            Examples.SessionTracingExample.Run();
-            Examples.DependencyInjectionExample.Run();
-            Examples.SecureServerExample.Run();
+            // Examples.SimpleServerExample.Run();
+            // Examples.CustomEndpointListenerExample.Run();
+            // Examples.ServerCancellingExample.Run();
+            // Examples.SessionTracingExample.Run();
+            // Examples.DependencyInjectionExample.Run();
+            // Examples.SecureServerExample.Run();
 
             // SampleMailClient.Send(user: "user1", password: "password1", useSsl: false, port: 587);
             // SampleMailClient.Send(useSsl: false, port: 587);

@@ -35,21 +35,21 @@ namespace SampleApp
             int size,
             System.Threading.CancellationToken cancellationToken)
         {
-            await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
-        
+            // await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
+
             if (@from == SmtpServer.Mail.Mailbox.Empty)
             {
-                return SmtpServer.Storage.MailboxFilterResult.NoPermanently;
+                return await System.Threading.Tasks.Task.FromResult(SmtpServer.Storage.MailboxFilterResult.NoPermanently);
             }
 
             System.Net.IPEndPoint endpoint = (System.Net.IPEndPoint)context.Properties[SmtpServer.Net.EndpointListener.RemoteEndPointKey];
-            
-            if (endpoint.Address.Equals(System.Net.IPAddress.Parse("127.0.0.1")))
-            {
-                return SmtpServer.Storage.MailboxFilterResult.Yes;
-            }
 
-            return SmtpServer.Storage.MailboxFilterResult.NoPermanently;
+#if false
+            if (!endpoint.Address.Equals(System.Net.IPAddress.Parse("127.0.0.1")))
+                return await System.Threading.Tasks.Task.FromResult(SmtpServer.Storage.MailboxFilterResult.NoPermanently);
+#endif
+
+            return await System.Threading.Tasks.Task.FromResult(SmtpServer.Storage.MailboxFilterResult.Yes);
         }
 
         /// <summary>
@@ -67,9 +67,10 @@ namespace SampleApp
             SmtpServer.Mail.IMailbox @from,
             System.Threading.CancellationToken cancellationToken)
         {
-            await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
+            // await System.Threading.Tasks.Task.Delay(_delay, cancellationToken);
 
-            return SmtpServer.Storage.MailboxFilterResult.Yes;
+            // return SmtpServer.Storage.MailboxFilterResult.Yes;
+            return await System.Threading.Tasks.Task.FromResult(SmtpServer.Storage.MailboxFilterResult.Yes);
         }
 
 

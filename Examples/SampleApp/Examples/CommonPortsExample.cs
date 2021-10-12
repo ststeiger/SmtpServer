@@ -16,7 +16,8 @@ namespace SampleApp.Examples
                 // sent from one mail server to another. Mail clients generally wont
                 // use this port and most ISP will likely block it anyway.
                 .Endpoint(builder => builder.Port(25).IsSecure(false))
-                
+
+#if false
                 // For a brief period in time this was a recognized port whereby
                 // TLS was enabled by default on the connection. When connecting to
                 // port 465 the client will upgrade its connection to SSL before
@@ -37,7 +38,9 @@ namespace SampleApp.Examples
                         .Port(587)
                         .AllowUnsecureAuthentication(false) // using 'false' here means that the user cant authenticate unless the connection is secure
                         .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
+#endif
                 .Build();
+
 
             SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
             // serviceProvider.Add(SmtpServer.Authentication.UserAuthenticator.Default);

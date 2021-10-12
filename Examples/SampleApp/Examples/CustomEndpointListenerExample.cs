@@ -154,10 +154,20 @@ namespace SampleApp.Examples
             // to create an X509Certificate for testing you need to run MAKECERT.EXE and then PVK2PFX.EXE
             // http://www.digitallycreated.net/Blog/38/using-makecert-to-create-certificates-for-development
 
-            byte[] certificate = System.IO.File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
-            string password = System.IO.File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
+            try
+            {
+                byte[] certificate = System.IO.File.ReadAllBytes(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServer.pfx");
+                string password = System.IO.File.ReadAllText(@"C:\Users\cain\Dropbox\Documents\Cain\Programming\SmtpServer\SmtpServerPassword.txt");
 
-            return new System.Security.Cryptography.X509Certificates.X509Certificate2(certificate, password);
+                return new System.Security.Cryptography.X509Certificates.X509Certificate2(certificate, password);
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                System.Console.WriteLine(ex.StackTrace);
+                throw;
+            }
+
         }
 
 
