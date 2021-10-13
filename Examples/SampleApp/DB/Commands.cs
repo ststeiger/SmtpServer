@@ -190,6 +190,7 @@ BEGIN
 END 
 
 
+-- CREATE VIEW V_DEV_MessagesWithData AS 
 SELECT 
 	 messages.msg_uid 
 	,messages.msg_mailbox 
