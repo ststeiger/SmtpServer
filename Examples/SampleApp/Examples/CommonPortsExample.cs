@@ -46,9 +46,9 @@ namespace SampleApp.Examples
             // serviceProvider.Add(SmtpServer.Authentication.UserAuthenticator.Default);
             // serviceProvider.Add(SmtpServer.Storage.MailboxFilter.Default);
             // serviceProvider.Add(SmtpServer.Storage.MessageStore.Default);
-            serviceProvider.Add(new SampleUserAuthenticator());
-            serviceProvider.Add(new SampleMailboxFilter(System.TimeSpan.FromSeconds(5)));
-            serviceProvider.Add(new SampleMessageStore(System.Console.Out));
+            serviceProvider.Add(new DummyUserAuthenticator());
+            serviceProvider.Add(new PrototypeMailboxFilter(System.TimeSpan.FromSeconds(5)));
+            serviceProvider.Add(new DbMessageStore(System.Console.Out, new SqlFactory()));
 
 
 

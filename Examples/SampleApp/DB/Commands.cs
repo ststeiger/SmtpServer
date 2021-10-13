@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS messages
     ,msg_addressfamily character varying(255) 
     ,msg_port integer 
     ,msg_id character varying(1000) 
+	 -- RFC 2822 states that the maximum number of characters in a subject line is 998 characters.
+	,msg_subject national character varying(1000) 
     ,msg_bytes bytea 
     -- ,CONSTRAINT pk_messages PRIMARY KEY (msg_uid) 
 ); 
@@ -78,9 +80,11 @@ CREATE TABLE IF NOT EXISTS messages_map_content
 (
 	 msg_uid uuid NOT NULL CONSTRAINT pk_messages_map_content PRIMARY KEY 
 	,msg_bytes bytea 
-	--,CONSTRAINT pk_messages_map_content PRIMARY KEY(msg_uid)
-	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES messages (msg_uid)
+	,msg_body national character varying 
+	--,CONSTRAINT pk_messages_map_content PRIMARY KEY(msg_uid) 
+	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES messages (msg_uid) 
 ); 
+
 
 */
 
@@ -179,7 +183,13 @@ INSERT INTO messages_map_content(msg_uid, msg_bytes, msg_body) VALUES ( @__msg_u
 
 
         public static readonly string Query_Messages = @"
--- CREATE VIEW V_DEV_MessagesWithData AS 
+IF 1=2 
+BEGIN 
+	TRUNCATE TABLE messages_map_content; 
+	DELETE FROM messages; 
+END 
+
+
 SELECT 
 	 messages.msg_uid 
 	,messages.msg_mailbox 
@@ -202,5 +212,7 @@ LEFT JOIN messages_map_content
 	ON messages_map_content.msg_uid = messages.msg_uid 
 
 ";
-    }
-}
+    } // ENd Class 
+
+
+} // End Namespace 
