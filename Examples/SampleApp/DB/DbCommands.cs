@@ -179,7 +179,7 @@ INSERT INTO messages_map_content(msg_uid, msg_bytes, msg_body) VALUES ( @__msg_u
 
 
         public static readonly string Query_Messages = @"
-
+-- CREATE VIEW V_DEV_MessagesWithData AS 
 SELECT 
 	 messages.msg_uid 
 	,messages.msg_mailbox 
