@@ -116,10 +116,9 @@ namespace SmtpServer
         /// </summary>
         /// <param name="value">The server's certificate to use when starting a TLS session.</param>
         /// <returns>A EndpointDefinitionBuilder to continue building on.</returns>
-        public EndpointDefinitionBuilder Certificate(X509Certificate value)
+        public EndpointDefinitionBuilder Certificate(ServerCertificateSelectionCallback value)
         {
             _setters.Add(options => options.ServerCertificate = value);
-
             return this;
         }
 
@@ -167,7 +166,8 @@ namespace SmtpServer
             /// <summary>
             /// Gets the Server Certificate to use when starting a TLS session.
             /// </summary>
-            public X509Certificate ServerCertificate { get; set; }
+            // public X509Certificate ServerCertificate { get; set; }
+            public ServerCertificateSelectionCallback ServerCertificate { get; set; }
 
             /// <summary>
             /// The supported SSL protocols.

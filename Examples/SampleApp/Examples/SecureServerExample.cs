@@ -20,7 +20,12 @@ namespace SampleApp.Examples
                     builder
                         .Port(9025, true)
                         .AllowUnsecureAuthentication(false)
-                        .Certificate(CreateCertificate()))
+                        .Certificate(
+                            delegate (object sender, string hostname)
+                            {
+                                return CreateCertificate();
+                            }
+                        ))
                 .Build();
 
             SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();

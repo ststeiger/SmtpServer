@@ -298,7 +298,7 @@ namespace AnySqlSmtpServer
                                         .ServerName("AnySql SMTP Server")
                                         .Endpoint(builder => builder.Port(25).IsSecure(false))
 
-#if false
+#if false 
                                     // For a brief period in time this was a recognized port whereby
                                     // TLS was enabled by default on the connection. When connecting to
                                     // port 465 the client will upgrade its connection to SSL before
@@ -308,7 +308,10 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(465)
                                             .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
-                                            .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
+                                            .Certificate(delegate (object sender, string hostname)
+                                            {
+                                                return new System.Security.Cryptography.X509Certificates.X509Certificate2();
+                                            }).SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
 
                                     // Port 587 is the default port that should be used by modern mail
                                     // clients. When a certificate is provided, the server will advertise
@@ -317,8 +320,13 @@ namespace AnySqlSmtpServer
                                     .Endpoint(builder => 
                                         builder
                                             .Port(587)
+                                            // Can also be used without ssl ? 
+                                            // .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
                                             .AllowUnsecureAuthentication(false) // using 'false' here means that the user cant authenticate unless the connection is secure
-                                            .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
+                                            .Certificate(delegate (object sender, string hostname)
+                                            {
+                                                return new System.Security.Cryptography.X509Certificates.X509Certificate2();
+                                            }).SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
 #endif
 
                                         .Build();

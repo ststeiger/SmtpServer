@@ -16,7 +16,7 @@ namespace SmtpServer.IO
         /// <param name="protocols">The value that represents the protocol used for authentication.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that asynchronously performs the operation.</returns>
-        Task UpgradeAsync(X509Certificate certificate, SslProtocols protocols, CancellationToken cancellationToken = default);
+        Task UpgradeAsync(ServerCertificateSelectionCallback certificate, SslProtocols protocols, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a value indicating whether or not the current pipeline is secure.

@@ -17,7 +17,10 @@ namespace SampleApp.Examples
                     builder
                         .Port(9025, true)
                         .AllowUnsecureAuthentication(false)
-                        .Certificate(CreateCertificate()))
+                        .Certificate(delegate (object sender, string hostname)
+                        {
+                            return CreateCertificate();
+                        }))
                 .Build();
 
             SmtpServer.ComponentModel.ServiceProvider serviceProvider = new SmtpServer.ComponentModel.ServiceProvider();
@@ -81,7 +84,7 @@ namespace SampleApp.Examples
             }
 
             public System.Threading.Tasks.Task UpgradeAsync(
-                System.Security.Cryptography.X509Certificates.X509Certificate certificate,
+                SmtpServer.ServerCertificateSelectionCallback certificate,
                 System.Security.Authentication.SslProtocols protocols,
                 System.Threading.CancellationToken cancellationToken = default)
             {
