@@ -303,7 +303,7 @@ namespace AnySqlSmtpServer
                                         .ServerName("AnySql SMTP Server")
                                         .Endpoint(builder => builder.Port(25).IsSecure(false))
 
-#if false 
+#if true  
                                     // For a brief period in time this was a recognized port whereby
                                     // TLS was enabled by default on the connection. When connecting to
                                     // port 465 the client will upgrade its connection to SSL before

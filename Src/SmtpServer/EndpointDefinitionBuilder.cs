@@ -111,14 +111,31 @@ namespace SmtpServer
             return this;
         }
 
+
+        /// <summary>
+        /// Sets the X509 certificate to use when starting a TLS session.
+        /// </summary>
+        /// <param name="value">The callback to find the server's certificate to use when starting a TLS session.</param>
+        /// <returns>A EndpointDefinitionBuilder to continue building on.</returns>
+        public EndpointDefinitionBuilder Certificate(ServerCertificateSelectionCallback value)
+        {
+            _setters.Add(options => options.ServerCertificate = value);
+            return this;
+        }
+
+
         /// <summary>
         /// Sets the X509 certificate to use when starting a TLS session.
         /// </summary>
         /// <param name="value">The server's certificate to use when starting a TLS session.</param>
         /// <returns>A EndpointDefinitionBuilder to continue building on.</returns>
-        public EndpointDefinitionBuilder Certificate(ServerCertificateSelectionCallback value)
+        public EndpointDefinitionBuilder Certificate(System.Security.Cryptography.X509Certificates.X509Certificate2 value)
         {
-            _setters.Add(options => options.ServerCertificate = value);
+            this.Certificate(delegate (object sender, string hostname)
+            {
+                return value;
+            });
+
             return this;
         }
 
