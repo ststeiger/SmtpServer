@@ -1,9 +1,8 @@
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.EventLog;
+using Microsoft.Extensions.Configuration; // AddEnvironmentVariables AddCommandLine SetBasePath AddJsonFile AddUserSecrets
+using Microsoft.Extensions.DependencyInjection; //  AddSingleton AddHostedService
+using Microsoft.Extensions.Hosting; // Run UseContentRoot UseWindowsService UseSystemd
+using Microsoft.Extensions.Logging; // AddFilter SetMinimumLevel AddConsole AddDebug AddEventLog AddEventSourceLogger AddSystemdConsole
 
 
 namespace AnySqlSmtpServer
@@ -104,9 +103,9 @@ namespace AnySqlSmtpServer
         } // End Sub Main 
 
 
-        public static IHostBuilder CreateCustomHostBuilder(string[] args)
+        public static Microsoft.Extensions.Hosting.IHostBuilder CreateCustomHostBuilder(string[] args)
         {
-            IHostBuilder builder = new HostBuilder();
+            Microsoft.Extensions.Hosting.IHostBuilder builder = new Microsoft.Extensions.Hosting.HostBuilder();
             try
             {
                 builder.UseContentRoot(s_ContentRootDirectory);
@@ -134,7 +133,7 @@ namespace AnySqlSmtpServer
 
 
                 builder.ConfigureHostConfiguration(
-                    delegate (IConfigurationBuilder config)
+                    delegate (Microsoft.Extensions.Configuration.IConfigurationBuilder config)
                     {
                     // Has no effect ... 
                     // s_logger.Log(Logging.LogLevel_t.Information, "SetBasePath: {0}", s_ExecutableDirectory);
@@ -150,9 +149,9 @@ namespace AnySqlSmtpServer
                 );
 
                 builder.ConfigureAppConfiguration(
-                        delegate (HostBuilderContext hostingContext, IConfigurationBuilder config)
+                        delegate (Microsoft.Extensions.Hosting.HostBuilderContext hostingContext, Microsoft.Extensions.Configuration.IConfigurationBuilder config)
                         {
-                            IHostEnvironment env = hostingContext.HostingEnvironment;
+                            Microsoft.Extensions.Hosting.IHostEnvironment env = hostingContext.HostingEnvironment;
                         // Completely wrong ... 
                         // s_logger.Log(Logging.LogLevel_t.Information, "ContentRootPath: {0}", env.ContentRootPath);
 
@@ -183,7 +182,10 @@ namespace AnySqlSmtpServer
                         } // End Delegate 
                     )
                     .ConfigureLogging(
-                        delegate (HostBuilderContext hostingContext, ILoggingBuilder logging)
+                        delegate (
+                            Microsoft.Extensions.Hosting.HostBuilderContext hostingContext, 
+                            Microsoft.Extensions.Logging.ILoggingBuilder logging
+                        )
                         {
                             bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
                                     System.Runtime.InteropServices.OSPlatform.Windows
@@ -198,7 +200,7 @@ namespace AnySqlSmtpServer
                             if (isWindows)
                             {
                                 // Default the EventLogLoggerProvider to warning or above
-                                logging.AddFilter<EventLogLoggerProvider>(level => level >= LogLevel.Warning);
+                                logging.AddFilter<Microsoft.Extensions.Logging.EventLog.EventLogLoggerProvider>(level => level >= LogLevel.Warning);
                             } // End if (isWindows) 
 
                             // logging.ClearProviders();
@@ -211,10 +213,10 @@ namespace AnySqlSmtpServer
                             //    System.IO.Directory.CreateDirectory(logDir);
 
 
-                            logging.SetMinimumLevel(LogLevel.Information);
+                            logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
                             // logging.AddFilter(x => x >= LogLevel.Trace);
                             logging.AddFilter(
-                                delegate (string categoryName, LogLevel b) 
+                                delegate (string categoryName, Microsoft.Extensions.Logging.LogLevel b) 
                                 {
                                     if (categoryName.StartsWith("Microsoft.")) return false;
                                     return true;
@@ -239,7 +241,7 @@ namespace AnySqlSmtpServer
                                     // options.SyslogServerPort = 514; // UPD: 514 , TCP: 601, TLS: 6514
                                     // options.InferNetworkProtocol();
                                     
-                                    options.Filter = delegate(string categoryName, LogLevel b) {
+                                    options.Filter = delegate(string categoryName, Microsoft.Extensions.Logging.LogLevel b) {
                                         if (categoryName.StartsWith("Microsoft."))
                                             return false;
 
@@ -264,7 +266,10 @@ namespace AnySqlSmtpServer
                         } // End Delegate 
                     )
                     .ConfigureServices(
-                        delegate (HostBuilderContext hostingContext, IServiceCollection services)
+                        delegate (
+                            Microsoft.Extensions.Hosting.HostBuilderContext hostingContext,
+                            Microsoft.Extensions.DependencyInjection.IServiceCollection services
+                        )
                         {
                             // AWSSDK.Extensions.NETCore.Setup
                             // AWSSDK.SQS
@@ -333,7 +338,10 @@ namespace AnySqlSmtpServer
                         } // End Delegate 
                     )
                     .UseDefaultServiceProvider(
-                        delegate (HostBuilderContext hostingContext, ServiceProviderOptions options)
+                        delegate (
+                            Microsoft.Extensions.Hosting.HostBuilderContext hostingContext, 
+                            Microsoft.Extensions.DependencyInjection.ServiceProviderOptions options
+                        )
                         {
                             bool isDevelopment = hostingContext.HostingEnvironment.IsDevelopment();
                             options.ValidateScopes = isDevelopment;
@@ -355,9 +363,9 @@ namespace AnySqlSmtpServer
         }
 
 
-        public static IHostBuilder CreateDefaultHostBuilder(string[] args)
+        public static Microsoft.Extensions.Hosting.IHostBuilder CreateDefaultHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args)
+            return Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
                 .ConfigureServices(
                     (hostContext, services) =>
                     {
@@ -406,7 +414,6 @@ namespace AnySqlSmtpServer
                         services.AddHostedService<Worker>();
                     });
         } // End Function CreateHostBuilder 
-
 
 
     } // End Class Program 

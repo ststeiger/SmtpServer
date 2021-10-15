@@ -1,6 +1,5 @@
 
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging; // LogInformation LogTrace LogError
 
 
 namespace AnySqlSmtpServer
@@ -8,15 +7,15 @@ namespace AnySqlSmtpServer
 
 
     public class Worker 
-        : BackgroundService
+        : Microsoft.Extensions.Hosting.BackgroundService
     {
 
-        protected readonly ILogger<Worker> m_logger;
+        protected readonly Microsoft.Extensions.Logging.ILogger<Worker> m_logger;
         protected SmtpServer.SmtpServer m_smtpServer;
         protected System.Threading.Tasks.Task m_serverTask;
 
 
-        public Worker(ILogger<Worker> logger, SmtpServer.SmtpServer smtpServer)
+        public Worker(Microsoft.Extensions.Logging.ILogger<Worker> logger, SmtpServer.SmtpServer smtpServer)
         {
             this.m_logger = logger;
             this.m_smtpServer = smtpServer;
@@ -73,7 +72,7 @@ namespace AnySqlSmtpServer
 
         void OnCommandExecuting(object sender, SmtpServer.SmtpCommandEventArgs e)
         {
-            System.Console.WriteLine("Command Executing.");
+            this.m_logger.LogTrace("Command Executing.");
 
             new SmtpServer.Tracing.TracingSmtpCommandVisitor(System.Console.Out).Visit(e.Command);
         } // End Sub OnCommandExecuting 
@@ -81,14 +80,15 @@ namespace AnySqlSmtpServer
 
         void OnCommandExecuted(object sender, SmtpServer.SmtpCommandEventArgs e)
         {
-            System.Console.WriteLine("Command Executed");
+            this.m_logger.LogTrace("Command Executed.");
+
             new SmtpServer.Tracing.TracingSmtpCommandVisitor(System.Console.Out).Visit(e.Command);
         } // End Sub OnCommandExecuted 
 
 
         void OnSessionCreated(object sender, SmtpServer.SessionEventArgs e)
         {
-            System.Console.WriteLine("Session Created.");
+            this.m_logger.LogTrace("Session Created.");
 
             e.Context.CommandExecuting += OnCommandExecuting;
             e.Context.CommandExecuted += OnCommandExecuted;
@@ -97,7 +97,7 @@ namespace AnySqlSmtpServer
 
         void OnSessionCompleted(object sender, SmtpServer.SessionEventArgs e)
         {
-            System.Console.WriteLine("Session Completed");
+            this.m_logger.LogTrace("Session Completed.");
 
             e.Context.CommandExecuting -= OnCommandExecuting;
             e.Context.CommandExecuted -= OnCommandExecuted;
@@ -106,13 +106,14 @@ namespace AnySqlSmtpServer
 
         void OnSessionFaulted(object sender, SmtpServer.SessionFaultedEventArgs e)
         {
-            System.Console.WriteLine("Session Faulted: {0}", e.Exception);
+            this.m_logger.LogTrace("Session Faulted: {0}", e.Exception);
+
         } // End Sub OnSessionFaulted 
 
 
         void OnSessionCancelled(object sender, SmtpServer.SessionEventArgs e)
         {
-            System.Console.WriteLine("Session Cancelled");
+            this.m_logger.LogTrace("Session Cancelled.");
         } // End Sub OnSessionCancelled 
 
 

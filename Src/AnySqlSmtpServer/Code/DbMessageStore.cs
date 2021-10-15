@@ -1,6 +1,7 @@
 ﻿
-using Dapper;
-using Microsoft.Extensions.Logging;
+using Dapper; // Execute
+using Microsoft.Extensions.Logging; // LogInformation LogTrace LogError
+
 
 namespace AnySqlSmtpServer
 {
@@ -10,10 +11,10 @@ namespace AnySqlSmtpServer
         : SmtpServer.Storage.MessageStore
     {
         protected readonly DB.SqlFactory m_factory;
-        protected readonly ILogger<DbMessageStore> m_logger;
+        protected readonly Microsoft.Extensions.Logging.ILogger<DbMessageStore> m_logger;
 
 
-        public DbMessageStore(ILogger<DbMessageStore> logger, DB.SqlFactory factory)
+        public DbMessageStore(Microsoft.Extensions.Logging.ILogger<DbMessageStore> logger, DB.SqlFactory factory)
         {
             this.m_logger = logger;
             this.m_factory = factory;
