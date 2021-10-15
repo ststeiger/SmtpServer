@@ -247,7 +247,12 @@ namespace SmtpServer.Tests
         {
             ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
-            using (var disposable = CreateServer(options => options.Certificate(CreateCertificate())))
+            using (var disposable = CreateServer(options => options.Certificate(
+                delegate (object sender, string hostname)
+                {
+                    return CreateCertificate();
+                }
+            )))
             {
                 var isSecure = false;
                 var sessionCreatedHandler = new EventHandler<SessionEventArgs>(
@@ -276,7 +281,12 @@ namespace SmtpServer.Tests
         {
             ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
-            using (var disposable = CreateServer(endpoint => endpoint.IsSecure(true).Certificate(CreateCertificate())))
+            using (SmtpServerDisposable disposable = CreateServer(endpoint => endpoint.IsSecure(true).Certificate(
+                 delegate (object sender, string hostname)
+                 {
+                     return CreateCertificate();
+                 }
+            )))
             {
                 var isSecure = false;
                 var sessionCreatedHandler = new EventHandler<SessionEventArgs>(
@@ -308,7 +318,10 @@ namespace SmtpServer.Tests
             ServicePointManager.ServerCertificateValidationCallback = IgnoreCertificateValidationFailureForTestingOnly;
 
             using (var disposable = CreateServer(
-                endpoint => endpoint.AllowUnsecureAuthentication(true).Certificate(CreateCertificate()).SupportedSslProtocols(SslProtocols.Tls12),
+                endpoint => endpoint.AllowUnsecureAuthentication(true).Certificate(delegate (object sender, string hostname)
+                {
+                    return CreateCertificate();
+                }).SupportedSslProtocols(SslProtocols.Tls12),
                 services => services.Add(userAuthenticator)))
             {
                 var isSecure = false;

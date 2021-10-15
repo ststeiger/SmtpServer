@@ -45,6 +45,7 @@ Version 8.0.5 Fixed bug where the AUTH PLAIN LOGIN command wasnt adverstised fro
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="StreamExtended" Version="1.0.201" />
     <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
   </ItemGroup>
 

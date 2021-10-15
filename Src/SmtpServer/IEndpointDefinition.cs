@@ -5,6 +5,42 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace SmtpServer
 {
+
+    /// <summary>
+    /// Selects the server Transport Layer Security (TLS) certificate.
+    /// </summary>
+    /// <param name="sender">A System.Net.Security.SslStream object</param>
+    /// <param name="hostName">The host name requested by the client. 
+    /// If the client doesn't use the host_name TLS extension, the hostName is an empty string.
+    /// </param>
+    /// <returns>An System.Security.Cryptography.X509Certificates.X509Certificate used for establishing a TLS connection</returns>
+    public delegate X509Certificate ServerCertificateSelectionCallback(object sender, string hostName);
+    // System.Net.Security.ServerCertificateSelectionCallback
+
+
+    public class sam
+    {
+        /// <summary>
+        /// Selects the server Transport Layer Security (TLS) certificate.
+        /// </summary>
+        /// <param name="sender">A System.Net.Security.SslStream object</param>
+        /// <param name="ip">IP-Address, if hostname is not set</param>
+        /// <param name="serverName">The host name requested by the client. 
+        /// If the client doesn't use the host_name TLS extension, the hostName is an empty string.
+        /// </param>
+        /// <returns>An System.Security.Cryptography.X509Certificates.X509Certificate used for establishing a TLS connection</returns>
+        public X509Certificate SelectServerCertificate(object sender, string ip, string serverName)
+        {
+            System.Net.Security.SslStream stream = (System.Net.Security.SslStream)sender;
+
+            return null;
+        }
+    }
+
+    
+
+
+
     public interface IEndpointDefinition
     {
         /// <summary>
@@ -35,7 +71,8 @@ namespace SmtpServer
         /// <summary>
         /// Gets the Server Certificate to use when starting a TLS session.
         /// </summary>
-        X509Certificate ServerCertificate { get; }
+        // X509Certificate ServerCertificate { get; }
+        ServerCertificateSelectionCallback ServerCertificate { get; }
 
         /// <summary>
         /// The supported SSL protocols.

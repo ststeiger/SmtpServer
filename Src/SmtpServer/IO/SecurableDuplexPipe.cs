@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Pipelines;
+using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -14,16 +15,18 @@ namespace SmtpServer.IO
         readonly Action _disposeAction;
         Stream _stream;
         bool _disposed;
+        readonly System.Net.IPAddress _clientAddress;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="stream">The stream that the pipe is reading and writing to.</param>
         /// <param name="disposeAction">The action to execute when the stream has been disposed.</param>
-        internal SecurableDuplexPipe(Stream stream, Action disposeAction)
+        internal SecurableDuplexPipe(Stream stream, Action disposeAction, System.Net.IPAddress clientAddress)
         {
             _stream = stream;
             _disposeAction = disposeAction;
+            _clientAddress = clientAddress;
 
             Input = PipeReader.Create(_stream);
             Output = PipeWriter.Create(_stream);
@@ -36,12 +39,34 @@ namespace SmtpServer.IO
         /// <param name="protocols">The value that represents the protocol used for authentication.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that asynchronously performs the operation.</returns>
-        public async Task UpgradeAsync(X509Certificate certificate, SslProtocols protocols, CancellationToken cancellationToken = default)
+        public async Task UpgradeAsync(ServerCertificateSelectionCallback certificate, SslProtocols protocols, CancellationToken cancellationToken = default)
         {
-            var stream = new SslStream(_stream, true);
+            // var stream = new SslStream(_stream, true);
 
-            await stream.AuthenticateAsServerAsync(certificate, false, protocols, true).ConfigureAwait(false);
 
+            StreamExtended.DefaultBufferPool bufferPool = new StreamExtended.DefaultBufferPool();
+
+            StreamExtended.Network.CustomBufferedStream yourClientStream =
+                new StreamExtended.Network.CustomBufferedStream(_stream, bufferPool, 4096);
+
+            StreamExtended.ClientHelloInfo clientSslHelloInfo =
+                await StreamExtended.SslTools.PeekClientHello(yourClientStream, bufferPool);
+
+
+            string sniHostName = null;
+
+            //will be null if no client hello was received (not a SSL connection)
+            if (clientSslHelloInfo != null)
+            {
+                sniHostName = clientSslHelloInfo.Extensions?.FirstOrDefault(x => x.Key == "server_name").Value?.Data;
+            }
+
+            if (string.IsNullOrWhiteSpace(sniHostName))
+                sniHostName = _clientAddress.MapToIPv4().ToString();
+
+            System.Net.Security.SslStream stream = new System.Net.Security.SslStream(yourClientStream, true);
+            X509Certificate cert = certificate(stream, sniHostName);
+            await stream.AuthenticateAsServerAsync(cert, false, protocols, true).ConfigureAwait(false);
             _stream = stream;
             
             Input = PipeReader.Create(_stream);
