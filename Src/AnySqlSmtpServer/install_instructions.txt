@@ -25,8 +25,9 @@ PG:
 https://unix.stackexchange.com/questions/409900/user-lingering-systemd-dependency-on-postgresql
 https://www.npgsql.org/doc/release-notes/6.0.html
 https://www.npgsql.org/doc/types/datetime.html
-
+https://serverfault.com/questions/700862/do-systemd-unit-files-have-to-be-reloaded-when-modified
 
 Changed config-file:
 systemctl daemon-reload
+systemctl --user daemon-reload
 systemctl restart kestrel-smtp.service
