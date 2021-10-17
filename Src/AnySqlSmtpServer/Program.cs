@@ -388,7 +388,8 @@ namespace AnySqlSmtpServer
                                             .Port(465)
                                             .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
                                             .Certificate(SelectCertificateFile)
-                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
+                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12
+                                            | System.Security.Authentication.SslProtocols.Tls13)) // requires a valid certificate to be configured
 
                                     // Port 587 is the default port that should be used by modern mail
                                     // clients. When a certificate is provided, the server will advertise
@@ -401,7 +402,8 @@ namespace AnySqlSmtpServer
                                             .IsSecure(false) // indicates that the client will need to upgrade to SSL upon connection - requires MailKit.Security.SecureSocketOptions.SslOnConnect
                                             .AllowUnsecureAuthentication(false) // using 'false' here means that the user cant authenticate unless the connection is secure
                                             .Certificate(SelectCertificateFile)
-                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
+                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12
+                                            | System.Security.Authentication.SslProtocols.Tls13)) // requires a valid certificate to be configured
 #endif
                                         
                                         .Build();
