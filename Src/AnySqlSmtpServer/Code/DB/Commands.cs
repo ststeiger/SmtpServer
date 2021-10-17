@@ -23,10 +23,10 @@ CREATE TABLE messages
 	 
 	,msg_from_mailbox national character varying(1000) 
 	,msg_from_host national character varying(1000) 
-	,msg_unmapped varchar(255) 
-	,msg_ip_v4 varchar(255) 
-	,msg_ip_v6 varchar(255) 
-	,msg_addressFamily varchar(255) 
+	,msg_unmapped character varying(255) 
+	,msg_ip_v4 character varying(255) 
+	,msg_ip_v6 character varying(255) 
+	,msg_addressFamily character varying(255) 
 	,msg_port integer 
 	 
 	,msg_id national character varying(1000) 
@@ -42,7 +42,7 @@ GO
 CREATE TABLE messages_map_content
 (
 	 msg_uid uniqueidentifier NOT NULL CONSTRAINT pk_messages_map_content PRIMARY KEY(msg_uid) -- uuid  
-	,msg_bytes varbinary(MAX) -- bytea
+	,msg_bytes binary varying(MAX) -- bytea
 	,msg_body national character varying(MAX) 
 	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES messages (msg_uid) 
 	 
@@ -50,6 +50,11 @@ CREATE TABLE messages_map_content
 
 
 /*
+
+-- DROP VIEW v_dev_messages;
+-- DROP TABLE messages_map_content
+-- DROP TABLE messages;
+
 
 -- DROP TABLE messages;
 
@@ -62,8 +67,8 @@ CREATE TABLE IF NOT EXISTS messages
     ,msg_from_mailbox character varying(1000) 
     ,msg_from_host character varying(1000) 
     ,msg_unmapped character varying(255) 
-    ,msg_ipv4 character varying(255) 
-    ,msg_ipv6 character varying(255) 
+    ,msg_ip_v4 character varying(255) 
+    ,msg_ip_v6 character varying(255) 
     ,msg_addressfamily character varying(255) 
     ,msg_port integer 
     ,msg_id character varying(1000) 
@@ -190,6 +195,7 @@ BEGIN
 END 
 
 
+CREATE VIEW v_dev_messages AS 
 SELECT 
 	 messages.msg_uid 
 	,messages.msg_mailbox 

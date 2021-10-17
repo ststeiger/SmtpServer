@@ -9,34 +9,7 @@ namespace AnySqlSmtpServer.DB
         private static System.Data.Common.DbProviderFactory s_Factory;
 
 
-        static SqlFactory()
-        {
-            s_ConnectionString = GetConnectionString();
-            s_Factory = DbProviderFactories.GetFactory(
-                typeof(System.Data.SqlClient.SqlClientFactory)
-            );
-        }
-
-
-        public static System.Data.Common.DbConnection GetConnection()
-        {
-            System.Data.Common.DbConnection con = s_Factory.CreateConnection();
-            con.ConnectionString = s_ConnectionString;
-
-            if (con.State != System.Data.ConnectionState.Open)
-                con.Open();
-
-            return con;
-        }
-
-
-        public static string Connection_String
-        {
-            get { return GetConnectionString(); }
-        }
-
-
-        public static string GetConnectionString()
+        private static string GetMsConnectionString()
         {
             System.Data.SqlClient.SqlConnectionStringBuilder csb = new System.Data.SqlClient.SqlConnectionStringBuilder();
 
@@ -45,7 +18,7 @@ namespace AnySqlSmtpServer.DB
 
             csb.IntegratedSecurity = true;
             if (!csb.IntegratedSecurity)
-            { 
+            {
                 csb.UserID = SecretManager.GetSecret<string>("DefaultDbUser");
                 csb.Password = SecretManager.GetSecret<string>("DefaultDbPassword");
             }
@@ -61,6 +34,46 @@ namespace AnySqlSmtpServer.DB
             csb.WorkstationID = System.Environment.MachineName;
 
             return csb.ConnectionString;
+        }
+
+        private static string GetPgConnectionString()
+        {
+            Npgsql.NpgsqlConnectionStringBuilder csb = new Npgsql.NpgsqlConnectionStringBuilder();
+
+            csb.Host = SecretManager.GetSecret<string>("DefaultDbHost"); ;
+            csb.Port = 5432;
+            csb.Database = SecretManager.GetSecret<string>("DefaultDb"); // "server_mail"
+
+            csb.IntegratedSecurity = false;
+            if (!csb.IntegratedSecurity)
+            {
+                // AnySqlSmtpServer smtp_verver_web_services meridian2021
+                csb.Username = SecretManager.GetSecret<string>("DefaultDbUser");
+                csb.Password = SecretManager.GetSecret<string>("DefaultDbPassword");
+            }
+
+            csb.PersistSecurityInfo = false;
+            csb.ApplicationName = "SMTP SampleServer";
+            csb.Timeout = 15;
+            csb.Pooling = true;
+            csb.MinPoolSize = 1;
+            csb.MaxPoolSize = 100;
+
+            return csb.ConnectionString;
+        }
+
+        static SqlFactory()
+        {
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                s_Factory = DbProviderFactories.GetFactory(typeof(System.Data.SqlClient.SqlClientFactory));
+                s_ConnectionString = GetMsConnectionString();
+            }
+            else
+            {
+                s_Factory = DbProviderFactories.GetFactory(typeof(Npgsql.NpgsqlFactory));
+                s_ConnectionString = GetPgConnectionString();
+            }
         }
 
 
@@ -88,7 +101,6 @@ namespace AnySqlSmtpServer.DB
             {
                 System.Data.Common.DbConnection con = s_Factory.CreateConnection();
                 con.ConnectionString = s_ConnectionString;
-
                 if (con.State != System.Data.ConnectionState.Open)
                     con.Open();
 
@@ -99,8 +111,6 @@ namespace AnySqlSmtpServer.DB
 
         public SqlFactory()
         { }
-
-
 
 
     }

@@ -8,7 +8,7 @@ namespace AnySqlSmtpServer.DB
         public System.Guid __msg_uid { get; set; }
         public string __msg_mailbox { get; set; }
         public string __msg_host { get; set; }
-        public System.DateTime __msg_utc_timestamp { get; set; } = System.DateTime.UtcNow;
+        public System.DateTimeOffset __msg_utc_timestamp { get; set; } = System.DateTimeOffset.UtcNow;
         public string __msg_from_mailbox { get; set; }
         public string __msg_from_host { get; set; }
         public string __msg_unmapped { get; set; }

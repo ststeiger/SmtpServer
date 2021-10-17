@@ -48,10 +48,81 @@ namespace AnySqlSmtpServer
             System.Console.WriteLine(System.Environment.NewLine);
         } // End Sub DisplayError 
 
+
+        private static readonly string s_DEFAULT_PASSWORD;
+
+
+        private static System.Collections.Concurrent.ConcurrentDictionary<string, System.Security.Cryptography.X509Certificates.X509Certificate2> certCache =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, System.Security.Cryptography.X509Certificates.X509Certificate2>(System.StringComparer.InvariantCultureIgnoreCase);
+
+
+        private static System.Security.Cryptography.X509Certificates.X509Certificate2 SelectCertificateFile(object sender, string hostname)
+        {
+            if (certCache.ContainsKey(hostname))
+            {
+                System.Security.Cryptography.X509Certificates.X509Certificate2 sslCert = certCache[hostname];
+                if (System.DateTime.Now >= sslCert.NotBefore && System.DateTime.Today <= sslCert.NotAfter)
+                    return sslCert;
+            }
+
+            string pfxFile = SecretManager.GetSecret<string>(hostname + "_v2", "HomepageDaniel");
+            if (pfxFile != null)
+            {
+                byte[] pfx = System.Convert.FromBase64String(pfxFile);
+                System.Security.Cryptography.X509Certificates.X509Certificate2 sslCert = new System.Security.Cryptography.X509Certificates.X509Certificate2(pfx, s_DEFAULT_PASSWORD, System.Security.Cryptography.X509Certificates.X509KeyStorageFlags.Exportable);
+
+                lock (certCache)
+                {
+                    certCache[hostname] = sslCert;
+                }
+                return sslCert;
+            }
+
+            pfxFile = SecretManager.GetSecret<string>(hostname + "_v2", "HomepageHenri");
+            if (pfxFile != null)
+            {
+                byte[] pfx = System.Convert.FromBase64String(pfxFile);
+                System.Security.Cryptography.X509Certificates.X509Certificate2 sslCert = new System.Security.Cryptography.X509Certificates.X509Certificate2(pfx, s_DEFAULT_PASSWORD, System.Security.Cryptography.X509Certificates.X509KeyStorageFlags.Exportable);
+
+                lock (certCache)
+                {
+                    certCache[hostname] = sslCert;
+                }
+
+                return sslCert;
+            }
+
+            return new System.Security.Cryptography.X509Certificates.X509Certificate2();
+        }
+
+
         static Program()
         {
             try
             {
+                try
+                {
+                    DB.SqlFactory db = new DB.SqlFactory();
+
+                    using (System.Data.Common.DbConnection cnn = db.Connection)
+                    {
+                        if (cnn.State != System.Data.ConnectionState.Open)
+                            cnn.Open();
+
+                        if (cnn.State != System.Data.ConnectionState.Closed)
+                            cnn.Close();
+                    }
+
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine(ex.Message);
+                    System.Console.WriteLine(ex.StackTrace);
+                    System.Environment.Exit(-1);
+                }
+
+
+                s_DEFAULT_PASSWORD = SecretManager.GetSecret<string>("CertificateDefaultPassword");
                 s_ProgramDirectory = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location);
                 s_CurrentDirectory = System.IO.Directory.GetCurrentDirectory();
                 s_BaseDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
@@ -96,8 +167,11 @@ namespace AnySqlSmtpServer
 
         } // End Static Constructor 
 
+
         public static void Main(string[] args)
         {
+            // SelectCertificateFile(null, "example.int");
+
             // CreateDefaultHostBuilder(args).Build().Run();
             CreateCustomHostBuilder(args).Build().Run();
         } // End Sub Main 
@@ -122,14 +196,14 @@ namespace AnySqlSmtpServer
                     // Requires Microsoft.Extensions.Hosting.WindowsServices
                     builder.UseSystemd(); // Add: Microsoft.Extensions.Hosting.Systemd
                 }
-                else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
-                {
-                    throw new System.NotImplementedException("Service for OSX Platform is NOT implemented.");
-                }
-                else
-                {
-                    throw new System.NotSupportedException("This Platform is NOT supported.");
-                }
+                //else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+                //{
+                //    throw new System.NotImplementedException("Service for OSX Platform is NOT implemented.");
+                //}
+                //else
+                //{
+                //    throw new System.NotSupportedException("This Platform is NOT supported.");
+                //}
 
 
                 builder.ConfigureHostConfiguration(
@@ -227,7 +301,7 @@ namespace AnySqlSmtpServer
                             logging.AddSysLogger(
                                 delegate (Logging.SysLoggerOptions options)
                                 {
-                                    // options.SyslogVersion = SyslogNet.Client.SyslogVersions.Rfc3164;
+                                    // options.SyslogVersion = SyslogNet.Client.SyslogVersions.Rfc316;
                                     // options.SyslogVersion = SyslogNet.Client.SyslogVersions.Rfc5424;
                                     // options.AppName = System.AppDomain.CurrentDomain.FriendlyName;
                                     // options.ProcId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -313,10 +387,8 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(465)
                                             .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
-                                            .Certificate(delegate (object sender, string hostname)
-                                            {
-                                                return new System.Security.Cryptography.X509Certificates.X509Certificate2();
-                                            }).SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
+                                            .Certificate(SelectCertificateFile)
+                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
 
                                     // Port 587 is the default port that should be used by modern mail
                                     // clients. When a certificate is provided, the server will advertise
@@ -326,14 +398,12 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(587)
                                             // Can also be used without ssl ? 
-                                            // .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
+                                            .IsSecure(false) // indicates that the client will need to upgrade to SSL upon connection - requires MailKit.Security.SecureSocketOptions.SslOnConnect
                                             .AllowUnsecureAuthentication(false) // using 'false' here means that the user cant authenticate unless the connection is secure
-                                            .Certificate(delegate (object sender, string hostname)
-                                            {
-                                                return new System.Security.Cryptography.X509Certificates.X509Certificate2();
-                                            }).SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
+                                            .Certificate(SelectCertificateFile)
+                                            .SupportedSslProtocols(System.Security.Authentication.SslProtocols.Tls12)) // requires a valid certificate to be configured
 #endif
-
+                                        
                                         .Build();
 
                                     return new SmtpServer.SmtpServer(options, provider.GetRequiredService<System.IServiceProvider>());
@@ -390,7 +460,7 @@ namespace AnySqlSmtpServer
                                     .ServerName("AnySql SMTP Server")
                                     .Endpoint(builder => builder.Port(25).IsSecure(false))
 
-#if false 
+#if true 
                                     // For a brief period in time this was a recognized port whereby
                                     // TLS was enabled by default on the connection. When connecting to
                                     // port 465 the client will upgrade its connection to SSL before
@@ -400,7 +470,7 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(465)
                                             .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
-                                            .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
+                                            .Certificate(SelectCertificateFile)) // requires a valid certificate to be configured
 
                                     // Port 587 is the default port that should be used by modern mail
                                     // clients. When a certificate is provided, the server will advertise
@@ -410,7 +480,7 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(587)
                                             .AllowUnsecureAuthentication(false) // using 'false' here means that the user cant authenticate unless the connection is secure
-                                            .Certificate(new System.Security.Cryptography.X509Certificates.X509Certificate2())) // requires a valid certificate to be configured
+                                            .Certificate(SelectCertificateFile)) // requires a valid certificate to be configured
 #endif
 
                                     .Build();
