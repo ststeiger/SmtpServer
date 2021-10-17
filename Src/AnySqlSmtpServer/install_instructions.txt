@@ -1,0 +1,32 @@
+
+Don't forget TCP/UPD port forwarding for ALL (25, 465, 587) ports ! 
+
+
+find programs on port 25, 465, 587:
+lsof -i :25
+lsof -i :465
+lsof -i :587
+
+kate /etc/systemd/system/kestrel-smtp.service
+
+sudo mkdir -p /opt/www/smtp
+sudo chown -R www-data:www-data /opt/www/smtp/
+chmod +x /opt/www/smtp/AnySqlSmtpServer
+
+sudo systemctl enable kestrel-smtp.service
+
+sudo systemctl start kestrel-smtp.service
+sudo systemctl stop kestrel-smtp.service
+sudo systemctl status kestrel-smtp.service
+
+
+
+PG:
+https://unix.stackexchange.com/questions/409900/user-lingering-systemd-dependency-on-postgresql
+https://www.npgsql.org/doc/release-notes/6.0.html
+https://www.npgsql.org/doc/types/datetime.html
+
+
+Changed config-file:
+systemctl daemon-reload
+systemctl restart kestrel-smtp.service
