@@ -472,7 +472,9 @@ namespace AnySqlSmtpServer
                                         builder
                                             .Port(465)
                                             .IsSecure(true) // indicates that the client will need to upgrade to SSL upon connection
-                                            .Certificate(SelectCertificateFile)) // requires a valid certificate to be configured
+                                            .Certificate(SelectCertificateFile)
+                                            ) // requires a valid certificate to be configured
+                                    
 
                                     // Port 587 is the default port that should be used by modern mail
                                     // clients. When a certificate is provided, the server will advertise
