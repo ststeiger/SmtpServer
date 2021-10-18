@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!--
     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net20;net35;net40;net45;net451;net452;net46;net461;net462;net47;net472;net48;netstandard2.0</TargetFrameworks>
+    https://stackoverflow.com/questions/38476796/how-to-set-net-core-in-if-statement-for-compilation
+    -->
+    
+    <TargetFrameworks>net461;net462;net47;net471;net472;net48;netstandard2.0;net5</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <AssemblyName>SmtpServer</AssemblyName>
     <RootNamespace>SmtpServer</RootNamespace>
@@ -45,8 +51,18 @@ Version 8.0.5 Fixed bug where the AUTH PLAIN LOGIN command wasnt adverstised fro
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ARSoft.Tools.Net.Core" Version="2.3.0" />
     <PackageReference Include="StreamExtended" Version="1.0.201" />
     <PackageReference Include="System.IO.Pipelines" Version="4.7.2" />
+  </ItemGroup>
+
+
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

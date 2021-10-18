@@ -100,6 +100,9 @@ namespace AnySqlSmtpServer
                     // this.m_logger.LogInformation(str);
 
                     MimeKit.MimeMessage message = await MimeKit.MimeMessage.LoadAsync(stream, cancellationToken);
+
+                    string spfPath = message.Headers[MimeKit.HeaderId.ReturnPath];
+
                     m.__msg_id = message.MessageId;
                     m.__msg_subject = message.Subject;
                     m.__msg_body = message.Body.ToString();

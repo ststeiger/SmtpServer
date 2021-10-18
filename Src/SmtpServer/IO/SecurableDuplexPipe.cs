@@ -41,8 +41,22 @@ namespace SmtpServer.IO
         /// <returns>A task that asynchronously performs the operation.</returns>
         public async Task UpgradeAsync(ServerCertificateSelectionCallback certificate, SslProtocols protocols, CancellationToken cancellationToken = default)
         {
-            // var stream = new SslStream(_stream, true);
+            // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+#if NET
+            SslStream stream = new SslStream(_stream, true);
 
+            System.Net.Security.SslServerAuthenticationOptions sslOptions =
+                new System.Net.Security.SslServerAuthenticationOptions
+                {
+                    // ServerCertificate = certificate,
+                    ServerCertificateSelectionCallback = new System.Net.Security.ServerCertificateSelectionCallback(certificate),
+                    CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.Offline,
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12
+                }
+            ;
+            
+            await stream.AuthenticateAsServerAsync(sslOptions);
+#else
 
             StreamExtended.DefaultBufferPool bufferPool = new StreamExtended.DefaultBufferPool();
 
@@ -67,6 +81,9 @@ namespace SmtpServer.IO
             System.Net.Security.SslStream stream = new System.Net.Security.SslStream(yourClientStream, true);
             X509Certificate cert = certificate(stream, sniHostName);
             await stream.AuthenticateAsServerAsync(cert, false, protocols, true).ConfigureAwait(false);
+#endif
+
+
             _stream = stream;
             
             Input = PipeReader.Create(_stream);

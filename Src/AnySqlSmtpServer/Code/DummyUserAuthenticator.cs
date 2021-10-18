@@ -20,7 +20,8 @@ namespace AnySqlSmtpServer
             string password,
             System.Threading.CancellationToken cancellationToken)
         {
-            return System.Threading.Tasks.Task.FromResult(user == "user" && password == "password");
+            // return System.Threading.Tasks.Task.FromResult(user == "user" && password == "password");
+            return System.Threading.Tasks.Task.FromResult(false);
         }
 
 
