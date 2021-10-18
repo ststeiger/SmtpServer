@@ -37,20 +37,23 @@ namespace SmtpServer.Net
         /// <returns>The securable pipe from the endpoint.</returns>
         public async Task<ISecurableDuplexPipe> GetPipeAsync(ISessionContext context, CancellationToken cancellationToken)
         {
-            var tcpClient = await _tcpListener.AcceptTcpClientAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
+            TcpClient tcpClient = await _tcpListener.AcceptTcpClientAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             context.Properties.Add(LocalEndPointKey, _tcpListener.LocalEndpoint);
             context.Properties.Add(RemoteEndPointKey, tcpClient.Client.RemoteEndPoint);
 
-            var stream = tcpClient.GetStream();
+            NetworkStream stream = tcpClient.GetStream();
             stream.ReadTimeout = (int)_endpointDefinition.ReadTimeout.TotalMilliseconds;
-            
-            return new SecurableDuplexPipe(stream, () =>
-            {
-                tcpClient.Close();
-                tcpClient.Dispose();
-            }, ((System.Net.IPEndPoint)tcpClient.Client.RemoteEndPoint).Address);
+
+            return new SecurableDuplexPipe(stream, 
+                delegate() 
+                {
+                    tcpClient.Close();
+                    tcpClient.Dispose();
+                }
+                , ((System.Net.IPEndPoint)tcpClient.Client.RemoteEndPoint).Address
+            );
         }
 
         /// <summary>
