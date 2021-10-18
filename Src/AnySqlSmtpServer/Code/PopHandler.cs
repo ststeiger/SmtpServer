@@ -203,6 +203,146 @@ namespace AnySqlSmtpServer.Code
         }
 
 
+        private string m_GreetingText = "";
+
+        protected void Start()
+        {
+            // base.Start();
+
+            /* RFC 1939 4.
+                Once the TCP connection has been opened by a POP3 client, the POP3
+                server issues a one line greeting.  This can be any positive
+                response.  An example might be:
+                    S:  +OK POP3 server ready
+            */
+
+            try
+            {
+                string reply = null;
+                if (string.IsNullOrEmpty(this.m_GreetingText))
+                {
+                    // reply = "+OK [" + Net_Utils.GetLocalHostName(this.LocalHostName) + "] POP3 Service Ready.";
+                    string lhn = System.Net.Dns.GetHostName();
+                    reply = "+OK [" + lhn + "] POP3 Service Ready.";
+                }
+                else
+                {
+                    reply = "+OK " + this.m_GreetingText;
+                }
+
+                /*
+                POP3_e_Started e = OnStarted(reply);
+
+                if (!string.IsNullOrEmpty(e.Response))
+                {
+                    WriteLine(reply.ToString());
+                }
+                */
+                // Setup rejected flag, so we respond "-ERR Session rejected." any command except QUIT.
+                //if (string.IsNullOrEmpty(e.Response) || e.Response.ToUpper().StartsWith("-ERR"))
+                //{
+                //    m_SessionRejected = true;
+                //}
+
+                //BeginReadCmd();
+            }
+            catch (Exception x)
+            {
+                System.Console.WriteLine(x.Message);
+                System.Console.WriteLine(x.StackTrace);
+                //OnError(x);
+            }
+        }
+        private void BeginReadCmd()
+        {
+            /*
+            if (this.IsDisposed)
+            {
+                return;
+            }
+
+            try
+            {
+                SmartStream.ReadLineAsyncOP readLineOP = new SmartStream.ReadLineAsyncOP(new byte[32000], SizeExceededAction.JunkAndThrowException);
+                // This event is raised only when read next coomand completes asynchronously.
+                readLineOP.CompletedAsync += new EventHandler<EventArgs<SmartStream.ReadLineAsyncOP>>(delegate (object sender, EventArgs<SmartStream.ReadLineAsyncOP> e)
+                {
+                    if (ProcessCmd(readLineOP))
+                    {
+                        BeginReadCmd();
+                    }
+                });
+                // Process incoming commands while, command reading completes synchronously.
+                while (this.TcpStream.ReadLine(readLineOP, true))
+                {
+                    if (!ProcessCmd(readLineOP))
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (Exception x)
+            {
+                OnError(x);
+            }
+            */
+        }
+
+
+        private void QUIT(string cmdText)
+        {
+            /* RFC 1939 6. QUIT
+			   NOTE:
+                When the client issues the QUIT command from the TRANSACTION state,
+				the POP3 session enters the UPDATE state.  (Note that if the client
+				issues the QUIT command from the AUTHORIZATION state, the POP3
+				session terminates but does NOT enter the UPDATE state.)
+
+				If a session terminates for some reason other than a client-issued
+				QUIT command, the POP3 session does NOT enter the UPDATE state and
+				MUST not remove any messages from the maildrop.
+             
+				The POP3 server removes all messages marked as deleted
+				from the maildrop and replies as to the status of this
+				operation.  If there is an error, such as a resource
+				shortage, encountered while removing messages, the
+				maildrop may result in having some or none of the messages
+				marked as deleted be removed.  In no case may the server
+				remove any messages not marked as deleted.
+
+				Whether the removal was successful or not, the server
+				then releases any exclusive-access lock on the maildrop
+				and closes the TCP connection.
+			*/
+
+            try
+            {
+                //if (this.IsAuthenticated)
+                //{
+                //    // Delete messages marked for deletion.
+                //    foreach (POP3_ServerMessage msg in m_pMessages)
+                //    {
+                //        if (msg.IsMarkedForDeletion)
+                //        {
+                //            OnDeleteMessage(msg);
+                //        }
+                //    }
+                //}
+
+                string localHostName = System.Net.Dns.GetHostName();
+
+                // cached lh name
+                // WriteLine("+OK <" + Net_Utils.GetLocalHostName(this.LocalHostName) + "> Service closing transmission channel.");
+                WriteLine("+OK <" + localHostName + "> Service closing transmission channel.");
+            }
+            catch
+            {
+            }
+            // Disconnect();
+            // Dispose();
+        }
+
+
         private bool ProcessCmd(SmartStream op)
         {
             bool readNextCommand = true;
