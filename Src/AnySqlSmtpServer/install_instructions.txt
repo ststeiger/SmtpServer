@@ -7,13 +7,21 @@ lsof -i :25
 lsof -i :465
 lsof -i :587
 
-kate /etc/systemd/system/kestrel-smtp.service
+
+
+
+
+ps -ef | grep -i "AnySqlSmtpServer"
+kill -s kill 1666
+
+
 
 sudo mkdir -p /opt/www/smtp
 sudo chown -R www-data:www-data /opt/www/smtp/
 chmod +x /opt/www/smtp/AnySqlSmtpServer
+sudo chown -R www-data:www-data /etc/COR
 
-sudo systemctl enable kestrel-smtp.service
+
 
 sudo systemctl start kestrel-smtp.service
 sudo systemctl stop kestrel-smtp.service
@@ -21,7 +29,41 @@ sudo systemctl status kestrel-smtp.service
 
 
 
+sudo systemctl enable kestrel-smtp.service
+
+
+nano /etc/systemd/system/kestrel-smtp.service
+
+[Unit]
+Description=SMTP server for PostgreSQL
+Requires=network.target postgresql.service
+After=postgresql.service
+
+[Service]
+WorkingDirectory=/opt/www/smtp
+ExecStart=/opt/www/smtp/AnySqlSmtpServer
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=dotnet-smtp
+User=root
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+
+
+
 PG:
+Listen on interface * instead of IP 
 https://unix.stackexchange.com/questions/409900/user-lingering-systemd-dependency-on-postgresql
 https://www.npgsql.org/doc/release-notes/6.0.html
 https://www.npgsql.org/doc/types/datetime.html
