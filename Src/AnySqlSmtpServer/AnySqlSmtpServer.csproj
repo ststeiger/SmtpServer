@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -18,9 +18,5 @@
     <ProjectReference Include="..\..\Examples\Dapper\Dapper.csproj" />
     <ProjectReference Include="..\SmtpServer\SmtpServer.csproj" />
     <ProjectReference Include="..\SyslogNet.Client\SyslogNet.Client.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Code\DB\SQL\" />
   </ItemGroup>
 </Project>
