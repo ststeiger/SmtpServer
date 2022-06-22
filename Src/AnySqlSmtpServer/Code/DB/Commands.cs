@@ -1,20 +1,41 @@
 ﻿
 namespace AnySqlSmtpServer.DB 
 {
+
+
     internal static class Commands 
     {
+
+
 		public static readonly string Create_Message_Table = @"
 
 USE server_mail
 GO
 
--- DROP TABLE messages_map_content;
+
+ALTER DATABASE server_mail SET COMPATIBILITY_LEVEL = 130
 GO 
 
-DROP TABLE messages;
+
+IF NOT EXISTS ( SELECT * FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'smtp' ) 
+BEGIN 
+    EXEC('CREATE SCHEMA smtp;'); 
+END 
+
+
+GO 
+
+
+DROP VIEW IF EXISTS smtp.v_dev_messages;
 GO
 
-CREATE TABLE messages
+DROP TABLE IF EXISTS smtp.messages_map_content; 
+GO 
+
+DROP TABLE IF EXISTS smtp.messages; 
+GO
+
+CREATE TABLE smtp.messages
 (
 	 msg_uid uniqueidentifier NOT NULL CONSTRAINT pk_messages PRIMARY KEY -- uuid
 	,msg_mailbox national character varying(1000) 
@@ -39,26 +60,24 @@ CREATE TABLE messages
 GO
 
 
-CREATE TABLE messages_map_content
+CREATE TABLE smtp.messages_map_content
 (
 	 msg_uid uniqueidentifier NOT NULL CONSTRAINT pk_messages_map_content PRIMARY KEY(msg_uid) -- uuid  
 	,msg_bytes binary varying(MAX) -- bytea
 	,msg_body national character varying(MAX) 
-	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES messages (msg_uid) 
+	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES smtp.messages (msg_uid) 
 	 
 );
 
 
 /*
 
--- DROP VIEW v_dev_messages;
--- DROP TABLE messages_map_content
--- DROP TABLE messages;
+DROP VIEW IF EXISTS smtp.v_dev_messages; 
+DROP TABLE IF EXISTS smtp.messages_map_content; 
+DROP TABLE IF EXISTS smtp.messages; 
 
 
--- DROP TABLE messages;
-
-CREATE TABLE IF NOT EXISTS messages
+CREATE TABLE IF NOT EXISTS smtp.messages
 (
      msg_uid uuid NOT NULL CONSTRAINT pk_messages PRIMARY KEY 
     ,msg_mailbox character varying(1000) 
@@ -79,15 +98,13 @@ CREATE TABLE IF NOT EXISTS messages
 ); 
 
 
--- DROP TABLE messages_map_content
-
-CREATE TABLE IF NOT EXISTS messages_map_content
+CREATE TABLE IF NOT EXISTS smtp.messages_map_content
 (
 	 msg_uid uuid NOT NULL CONSTRAINT pk_messages_map_content PRIMARY KEY 
 	,msg_bytes bytea 
 	,msg_body national character varying 
 	--,CONSTRAINT pk_messages_map_content PRIMARY KEY(msg_uid) 
-	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES messages (msg_uid) 
+	,CONSTRAINT fk_messages_map_content_messages FOREIGN KEY(msg_uid) REFERENCES smtp.messages (msg_uid) 
 ); 
 
 
@@ -134,18 +151,18 @@ SET @__msg_uid = NEWID()
 -- SET @__msg_subject -- national character varying(1000) 
 -- SET @__msg_body -- national character varying(MAX) 
 
--- SELECT * FROM messages_map_content; 
--- SELECT * FROM messages; 
+-- SELECT * FROM smtp.messages_map_content; 
+-- SELECT * FROM smtp.messages; 
 
 IF 1=2 
 BEGIN 
-	TRUNCATE TABLE messages_map_content; 
-	DELETE FROM messages; 
+	TRUNCATE TABLE smtp.messages_map_content; 
+	DELETE FROM smtp.messages; 
 END 
 */
 
 
-INSERT INTO messages 
+INSERT INTO smtp.messages 
 ( 
 	 msg_uid 
 	,msg_mailbox 
@@ -181,7 +198,7 @@ VALUES
 	,@__msg_bytes -- varbinary(max)
 ); 
 
-INSERT INTO messages_map_content(msg_uid, msg_bytes, msg_body) VALUES ( @__msg_uid, @__msg_bytes,@__msg_body ); 
+INSERT INTO smtp.messages_map_content(msg_uid, msg_bytes, msg_body) VALUES ( @__msg_uid, @__msg_bytes,@__msg_body ); 
 
 ";
 
@@ -190,12 +207,14 @@ INSERT INTO messages_map_content(msg_uid, msg_bytes, msg_body) VALUES ( @__msg_u
         public static readonly string Query_Messages = @"
 IF 1=2 
 BEGIN 
-	TRUNCATE TABLE messages_map_content; 
-	DELETE FROM messages; 
+	TRUNCATE TABLE smtp.messages_map_content; 
+	DELETE FROM smtp.messages; 
 END 
 
+DROP VIEW IF EXISTS smtp.v_dev_messages;
+GO
 
-CREATE VIEW v_dev_messages AS 
+CREATE VIEW smtp.v_dev_messages AS 
 SELECT 
 	 messages.msg_uid 
 	,messages.msg_mailbox 
@@ -210,15 +229,15 @@ SELECT
 	,messages.msg_port 
 	,messages.msg_id 
 	,messages.msg_subject 
+	-- ,messages.msg_bytes 
 	,messages_map_content.msg_bytes 
 	,messages_map_content.msg_body 
-FROM messages 
+FROM smtp.messages 
 
-LEFT JOIN messages_map_content 
-	ON messages_map_content.msg_uid = messages.msg_uid 
-
+LEFT JOIN smtp .messages_map_content 
+	ON messages_map_content .msg_uid  = messages.msg_uid 
 ";
-    } // ENd Class 
+	} // End Class Commands 
 
 
 } // End Namespace 
